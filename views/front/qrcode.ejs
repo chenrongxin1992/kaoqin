@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- 上述3个meta标签*必须*放在最前面，任何其他内容都*必须*跟随其后！ -->
+    <title>会议二维码</title>
+
+    <!-- Bootstrap -->
+    <link rel="stylesheet" href="http://cdn.bootcss.com/bootstrap/3.3.2/css/bootstrap.min.css">
+    <link rel='stylesheet' href='/stylesheets/style.css' />
+    <link rel='stylesheet' href='/stylesheets/bootstrap-datetimepicker.min.css' />
+    <link rel='stylesheet' href='/stylesheets/bootstrap-select.css' />
+    <link rel='stylesheet' href='/stylesheets/bootstrapValidator.min.css' />
+    <link rel='stylesheet' href='/stylesheets/bootstrap-switch.min.css' />
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+      <script src="https://cdn.bootcss.com/html5shiv/3.7.3/html5shiv.min.js"></script>
+      <script src="https://cdn.bootcss.com/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+    <style type="text/css">
+      body{
+        padding: 0;
+        font-family: '微软雅黑';;
+      }
+      .head{
+        font-size:26px;
+        background-color: #F0F8FF;
+        border: 1px solid #ddd;
+        margin:5px 0;
+        height: 50px;
+        padding: 5px 0 0 0;
+
+      }
+      .part{
+        background-color: #F0F8FF;
+        border: 1px solid #ddd;
+        margin:5px 0px;
+        line-height: 150px;
+      }
+      .part:hover{
+        background-color: #EEEEE0;
+      }
+      @media (min-width: 1170px) {
+        .user{
+          height: 70px;
+          background-color: #F0F8FF;
+          line-height: 70px;
+          vertical-align: bottom;
+          padding-top: 13px;
+        }
+      }
+      .user{
+        background-color: #F0F8FF;
+        vertical-align: bottom;
+      }
+      hr{
+        margin: 5px 5px;
+        color: #EECFA1;
+        border: 1px solid;
+      }
+      .footer{
+        text-align: center;
+      }
+      a{
+        font-size: 18px;
+      }
+      a:hover{
+        font-size: 20px;
+        text-decoration:none
+      }
+      .uniform{
+        padding: 15px 15px;
+      }
+      #ui-datepicker-div{
+        display: none;
+      }
+      .bootstrap-select > .dropdown-toggle{
+        width: auto;
+      }
+      .dropdown-menu > .open{
+        width: auto;
+      }
+      .bootstrap-select.btn-group .dropdown-menu{
+        min-width: 10%;
+      }
+      .to{
+        text-align: center;
+        font-size: medium;
+        line-height: 34px;
+      }
+      #code{
+        min-height: 300px;
+        text-align: center;
+        margin : 10px 0;
+      }
+      @media (max-width: 768px) {
+        .btn_ {
+          margin:5px 0;
+        }
+        .meeting_date{
+          text-align: left;
+          margin-left: -15px;
+          min-height: 26px;
+        }
+        .meeting_info{
+          min-height: 26px;
+        }
+        .dynamic_code{
+          margin-left: -15px;
+          line-height: 32px;
+        }
+        .uniform{
+          padding: 0 15px;
+        }
+      }
+      @media (min-width: 768px) {
+        .meeting_date{
+          text-align: right;
+        }
+        .dynamic_code{
+          text-align: right;
+          line-height: 32px;
+        }
+        .meeting_info{
+          line-height: 34px;
+        }
+      }
+      .note{
+
+        background-color: #F0F8FF;
+      }
+      .description{
+
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="row">
+        <div class="col-lg-9 col-md-9 col-sm-12 col-xs-12">
+          <img src="../images/szucsselogo.png" class="img-responsive" alt="">  
+        </div>
+        <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12 user">
+          <span class="pull-right user">首页 | 当前用户:aaa | 退出</span>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 ">
+          <p class="text-center head"><span class="glyphicon glyphicon-qrcode"></span> 会议二维码</p>
+        </div>
+      </div>
+
+      <div class="row uniform">
+        <form class="form-horizontal">
+          <div class="form-group">
+            <label for="meeting_name" class="col-lg-3 col-md-3 col-sm-3 col-xs-12 control-label">请选择会议</label>
+            <div class="col-lg-3 col-md-3 col-sm-3 col-xs-12">
+              <select id="meeting_name" class="selectpicker" data-hide-disabled="true" data-live-search="false">
+                  <option>select</option>
+                  <% for(let i=0;i<result.length;i++) { %>
+                    <option><%=result[i].meeting_name%></option>
+                  <% } %>
+              </select>
+            </div>
+            <div class="col-lg-2 col-md-2 col-sm-2 col-xs-6 btn_">
+                <button type="submit" class="btn btn-success" id="create-baoming">生成报名二维码</button>
+             </div>
+             <div class="col-lg-2 col-md-2 col-sm-2 col-xs-6 btn_">
+                <button type="submit" class="btn btn-success" id="create-qiandao">生成签到二维码</button>
+             </div>
+          </div>
+  
+          <div class="form-group" style="display: none;">
+            <label for="randomStr" class="col-lg-3 col-md-3 col-sm-3 col-xs-12 control-label">会议编号</label>
+            <div class="col-lg-7 col-md-7 col-sm-7 col-xs-12">
+              <select id="randomStr" class="selectpicker" data-hide-disabled="true" data-live-search="false">
+                <option>select</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="meeting_date" class="col-lg-3 col-md-3 col-sm-3 col-xs-12 control-label">会议时间</label>
+            <div class="col-lg-7 col-md-7 col-sm-7 col-xs-12 meeting_info" id="meeting_date_time">
+              暂无
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="meeting_des" class="col-lg-3 col-md-3 col-sm-3 col-xs-12 control-label">会议详情</label>
+            <div class="col-lg-7 col-md-7 col-sm-7 col-xs-12 meeting_info" id="meeting_des">
+              暂无
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="dynamic_code" class="col-lg-3 col-md-3 col-sm-3 col-xs-5 control-label">动态二维码</label>
+            <div class="col-lg-7 col-md-7 col-sm-7 col-xs-7" id="meeting_des">
+              <div class="switch">
+                  <input type="checkbox" name="my-checkbox"  disabled  />
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <div class="row">
+        <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+          <div id="code"></div> 
+        </div>
+      </div>
+
+      <div class="row ">
+        <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 ">
+          <span class="note">备注：此处只显示最近一周将举行的会议</span>
+        </div>
+      </div>
+
+      <div class="row">
+        <hr>
+      </div>
+
+      <div class="row">
+        <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 footer">
+          <span>2017 © 计算机与软件学院</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 模态框 -->
+    <!-- Button trigger modal -->
+    <!-- Modal -->
+    <div class="modal fade modal-msg" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel" id="data-modal">
+    <div class="modal-dialog modal-md modal-xs" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+          <h4 class="modal-title" id="gridSystemModalLabel">创建结果</h4>
+        </div>
+        <div class="modal-body">
+
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-success sure" data-dismiss="modal" id="result-sure">确定</button>
+          <button type="button" class="btn btn-default sure" data-dismiss="modal" id="result-qrcode">生成二维码</button>
+        </div>
+      </div>
+    </div>
+  </div>
+    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+    <!-- Include all compiled plugins (below), or include individual files as needed -->
+    <script src="http://cdn.bootcss.com/jquery/1.11.2/jquery.min.js"></script>
+    <script src="http://cdn.bootcss.com/bootstrap/3.3.2/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src='/javascripts/moment-with-locales.min.js' ></script>
+    <script type="text/javascript" src='/javascripts/bootstrap-datetimepicker.min.js' ></script>
+    <script type="text/javascript" src='/javascripts/bootstrap-select.js' ></script>
+    <script type="text/javascript" src='/javascripts/bootstrapValidator.min.js' ></script>
+    <script type="text/javascript" src='/javascripts/jquery.qrcode.min.js' ></script>
+    <script type="text/javascript" src='/javascripts/bootstrap-switch.min.js' ></script>
+    <script type="text/javascript">
+    var dongtai
+    $.fn.bootstrapSwitch.defaults.size = 'small';
+    $.fn.bootstrapSwitch.defaults.onColor = 'success';
+    jQuery.browser={};(function(){jQuery.browser.msie=false; 
+    jQuery.browser.version=0;if(navigator.userAgent.match(/MSIE ([0-9]+)./)){ jQuery.browser.msie=true;jQuery.browser.version=RegExp.$1;}})();
+       $(function() {
+
+        //初始化开关
+        $("[name='my-checkbox']").bootstrapSwitch();
+
+        //时间选择限制
+        $('#meeting_name').change(function(){
+          // 清除定时器
+          clearInterval(dongtai)
+
+          //移除按钮禁用属性
+          $('#create-qiandao').removeAttr("disabled")
+          $('#create-baoming').removeAttr("disabled")
+
+          //动态开关重置默认
+          let jinyong = $('input[name="my-checkbox"]').bootstrapSwitch('disabled')
+          console.log('jinyong-->',jinyong,'继续禁用')
+          if(!jinyong){
+            $('input[name="my-checkbox"]').bootstrapSwitch('toggleDisabled');  // true || false
+          }
+
+          let temp_meetingName = $('#meeting_name option:selected').val()
+          console.log('当前选择会议名-->',temp_meetingName)
+          let temp_result = '<%- JSON.stringify(result) %>' //字符串
+              temp_result = JSON.parse(temp_result);
+          console.log('一周内会议信息-->',temp_result)
+
+          $("#randomStr option").remove()
+          $("#meeting_date_time").empty()
+          $("#meeting_des").empty()
+          $("#code").empty()
+
+          for(let i=0; i<temp_result.length; i++){
+            if(temp_meetingName == temp_result[i].meeting_name){
+              console.log('----- 找到该会议 -----')
+              console.log('该会议随机码-->',temp_result[i].randomStr)
+              console.log('日期-->',temp_result[i].meeting_date,temp_result[i].meeting_time)
+              console.log('描述-->',temp_result[i].meeting_des)
+              $("#randomStr").append("<option>"+temp_result[i].randomStr+"</option>");
+              $("#meeting_date_time").append("<p>"+temp_result[i].meeting_date + '  ' + temp_result[i].zhouji + '  ' +temp_result[i].meeting_time+"</p>");
+              $("#meeting_des").append("<p>"+temp_result[i].meeting_des + "</p>");
+            }
+          }
+          if(temp_meetingName == 'select'){
+              $("#meeting_date_time").append("<p>"+'暂无信息'+"</p>");
+              $("#meeting_des").append("<p>"+'暂无信息' + "</p>");
+              $('#code').empty()
+          }
+          $("#randomStr").selectpicker("refresh")
+       })//change
+
+      //生成报名二维码
+      $('#create-baoming').on("click",function(){
+        // 清除定时器
+        clearInterval(dongtai)
+
+        let temp_meetingName = $('#meeting_name option:selected').val()
+        if(temp_meetingName == 'select'){
+          console.log('----- 没有选择会议 -----')
+          return false
+        }
+
+        let jinyong = $('input[name="my-checkbox"]').bootstrapSwitch('disabled')
+        console.log('jinyong-->',jinyong , '点击报名按钮，不将开关激活')
+        if(!jinyong){
+          $('input[name="my-checkbox"]').bootstrapSwitch('toggleDisabled');  // true || false
+        }
+
+        $('#create-baoming').attr("disabled","disabled")
+        $("#code").empty()
+
+        console.log('----- 生成报名二维码 -----')
+        let randomStr = $('#randomStr option:selected').val()
+        console.log('点击报名按钮，会议的随机码是-->',randomStr)
+        //116.13.96.53:81
+        let baomingUrl = 'http://116.13.96.53:81/?r=' + randomStr + '&b=1'
+        console.log('点击报名按钮，报名链接是-->',baomingUrl)
+        $("#code").qrcode({ 
+            background : '#F0F8FF',
+            render: "canvas", //table方式 
+            width: 300, //宽度 
+            height:300, //高度 
+            text: baomingUrl //任意内容 
+        });
+        //$('input[name="my-checkbox"]').bootstrapSwitch('toggleDisabled');  // true || false
+        return false
+      })
+
+      //生成签到二维码
+      $('#create-qiandao').on("click",function(){
+        console.log('----- 生成签到二维码 -----')
+
+        //$('#create-qiandao').addClass('disabled')
+        //.attr("width","180");
+        //$('#create-qiandao').prop('disabled', true)
+        
+        let temp_meetingName = $('#meeting_name option:selected').val()
+        if(temp_meetingName == 'select'){
+          console.log('----- 没有选择会议 -----')
+          return false
+        }
+
+        //禁用按钮
+        $('#create-qiandao').attr("disabled","disabled")
+        $("#code").empty()
+
+        //判断开关是否禁用
+        let jinyong = $('input[name="my-checkbox"]').bootstrapSwitch('disabled')
+        console.log('jinyong-->', jinyong , '点击签到二维码按钮，将开关激活')//true禁用，false启用
+        if(jinyong){
+          $('input[name="my-checkbox"]').bootstrapSwitch('toggleDisabled');  // true || false
+        }
+
+        //获取开关状态
+        let status = $('input[name="my-checkbox"]').bootstrapSwitch('state')
+        if(status){
+          console.log('开关打开着，开始生成动态二维码，3分钟变一次')
+
+          let timeStamp = moment().format('X')
+          console.log('当前时间戳-->',timeStamp)
+
+          //获取当前会议唯一码
+          let randomStr = $('#randomStr option:selected').val()
+          console.log('第一次获取的会议二维码是-->',randomStr)
+
+          //116.13.96.53:81,签到链接
+          let qiandaoUrl = 'http://116.13.96.53:81/?r=' + randomStr + '&q=1' + '&d=1' + '&t=' + timeStamp
+          console.log('第一次的签到链接-->',qiandaoUrl)
+
+          $("#code").empty()
+          $("#code").qrcode({ 
+                background : '#F0F8FF',
+                render: "canvas", //table方式 
+                width: 300, //宽度 
+                height:300, //高度 
+                text: qiandaoUrl //任意内容 
+          });
+          dongtai = setInterval(createQrcode,5000)
+
+        }else{
+          console.log('开关关闭，静态二维码')
+          //获取当前会议唯一码
+          let randomStr = $('#randomStr option:selected').val()
+          console.log('获取的会议随机码是-->',randomStr)
+          let qiandaoUrl = 'http://116.13.96.53:81/?r=' + randomStr + '&q=1' + '&d=0'
+          console.log('检查签到链接-->',qiandaoUrl)
+          $("#code").empty()
+          $("#code").qrcode({ 
+                background : '#F0F8FF',
+                render: "canvas", //table方式 
+                width: 300, //宽度 
+                height:300, //高度 
+                text: qiandaoUrl //任意内容 
+          });
+        }
+        return false
+      })
+
+        //监听开关状态
+        $('input[name="my-checkbox"]').on({
+          'switchChange.bootstrapSwitch': function(event, state) {
+            console.log('-----监听开关状态-----')
+            console.log('event-->',event)
+            console.log('state-->',state)
+            if (state == true){
+              console.log('打开开关，开始生成动态二维码')
+
+              let timeStamp = moment().format('X')
+              console.log('当前时间戳-->',timeStamp)
+
+              //获取当前会议唯一码
+              let randomStr = $('#randomStr option:selected').val()
+              console.log('第一次获取的会议二维码是-->',randomStr)
+
+              //116.13.96.53:81,签到链接
+              let qiandaoUrl = 'http://116.13.96.53:81/?r=' + randomStr + '&q=1' + '&d=1' + '&t=' + timeStamp
+              console.log('第一次的签到链接-->',qiandaoUrl)
+
+              $("#code").empty()
+              $("#code").qrcode({ 
+                    background : '#F0F8FF',
+                    render: "canvas", //table方式 
+                    width: 300, //宽度 
+                    height:300, //高度 
+                    text: qiandaoUrl //任意内容 
+              });
+              dongtai = setInterval(createQrcode,5000)
+            }else{
+              console.log('----- 手动关闭开关，清除定时器 -----')
+              clearInterval(dongtai)
+              //获取当前会议唯一码
+              let randomStr = $('#randomStr option:selected').val()
+              console.log('check randomStr after click-->',randomStr)
+              let qiandaoUrl = 'http://116.13.96.53:81/?r=' + randomStr + '&q=1' + '&d=0'
+              console.log('关闭开关后的签到链接-->',qiandaoUrl)
+              $("#code").empty()
+              $("#code").qrcode({ 
+                    background : '#F0F8FF',
+                    render: "canvas", //table方式 
+                    width: 300, //宽度 
+                    height:300, //高度 
+                    text: qiandaoUrl //任意内容 
+              });
+            }
+          }
+        })
+      })
+    
+    //生成二维码函数，参数为链接地址
+    function createQrcode(){
+      //获取当前会议唯一码
+      let randomStr = $('#randomStr option:selected').val()
+      console.log('check randomStr after click-->',randomStr)
+      //时间戳
+      let timeStamp = moment().format('X')
+      console.log('当前时间戳-->',timeStamp)
+      //116.13.96.53:81,签到链接
+      let qiandaoUrl = 'http://116.13.96.53:81/?r=' + randomStr + '&q=1' + '&d=1' + '&t=' + timeStamp
+      console.log('签到链接-->',qiandaoUrl)
+      $("#code").empty()
+      $("#code").qrcode({ 
+            background : '#F0F8FF',
+            render: "canvas", //table方式 
+            width: 300, //宽度 
+            height:300, //高度 
+            text: qiandaoUrl //任意内容 
+      });
+    }
+
+    </script>
+  </body>
+</html>

@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no">
+    <!-- 上述3个meta标签*必须*放在最前面，任何其他内容都*必须*跟随其后！ -->
+    <title>创建新会议</title>
+
+    <!-- Bootstrap -->
+    <link rel="stylesheet" href="http://cdn.bootcss.com/bootstrap/3.3.2/css/bootstrap.min.css">
+    <link rel='stylesheet' href='/stylesheets/style.css' />
+    <link rel='stylesheet' href='/stylesheets/bootstrap-datetimepicker.min.css' />
+    <link rel='stylesheet' href='/stylesheets/bootstrap-select.css' />
+    <link rel='stylesheet' href='/stylesheets/bootstrapValidator.min.css' />
+
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+      <script src="https://cdn.bootcss.com/html5shiv/3.7.3/html5shiv.min.js"></script>
+      <script src="https://cdn.bootcss.com/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+    <style type="text/css">
+      body{
+        padding: 0;
+        font-family: '微软雅黑';;
+      }
+      .head{
+        font-size:26px;
+        background-color: #F0F8FF;
+        border: 1px solid #ddd;
+        margin:5px 0;
+        height: 50px;
+        padding: 5px 0 0 0;
+
+      }
+      .part{
+        background-color: #F0F8FF;
+        border: 1px solid #ddd;
+        margin:5px 0px;
+        line-height: 150px;
+      }
+      .part:hover{
+        background-color: #EEEEE0;
+      }
+      @media (min-width: 1170px) {
+        .user{
+          height: 70px;
+          background-color: #F0F8FF;
+          line-height: 70px;
+          vertical-align: bottom;
+          padding-top: 13px;
+        }
+      }
+      .user{
+        background-color: #F0F8FF;
+        vertical-align: bottom;
+      }
+      hr{
+        margin: 5px 5px;
+        color: #EECFA1;
+        border: 1px solid;
+      }
+      .footer{
+        text-align: center;
+      }
+      a{
+        font-size: 18px;
+      }
+      a:hover{
+        font-size: 20px;
+        text-decoration:none
+      }
+      .uniform{
+        padding: 15px 15px;
+      }
+      #ui-datepicker-div{
+        display: none;
+      }
+      .bootstrap-select > .dropdown-toggle{
+        width: auto;
+      }
+      .dropdown-menu > .open{
+        width: auto;
+      }
+      .bootstrap-select.btn-group .dropdown-menu{
+        min-width: 10%;
+      }
+      .to{
+        text-align: center;
+        font-size: medium;
+        line-height: 34px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="row">
+        <div class="col-lg-9 col-md-9 col-sm-12 col-xs-12">
+          <img src="../images/szucsselogo.png" class="img-responsive" alt="">  
+        </div>
+        <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12 user">
+          <span class="pull-right user">当前用户:aaa | 退出</span>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 ">
+          <p class="text-center head">创建新会议</p>
+         
+        </div>
+      </div>
+
+      <div class="row uniform">
+        <form class="form-horizontal">
+          <div class="form-group">
+            <label for="meeting_name" class="col-lg-3 col-md-3 col-sm-3 col-xs-12 control-label">会议名称</label>
+            <div class="col-lg-7 col-md-7 col-sm-7 col-xs-12">
+              <input type="text" class="form-control" id="meeting_name" placeholder="请输入会议名称" name="meeting_name">
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="meeting_des" class="col-lg-3 col-md-3 col-sm-3 col-xs-12 control-label">会议描述</label>
+            <div class="col-lg-7 col-md-7 col-sm-7 col-xs-12">
+              <textarea class="form-control" rows="3" id="meeting_des" placeholder="请描述会议" name="meeting_des"></textarea>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="meeting_date" class="col-lg-3 col-md-3 col-sm-3 col-xs-12 control-label">会议日期</label>
+            <div class="col-lg-7 col-md-7 col-sm-7 col-xs-12" id=''>
+              <input type="text" class="form-control" id="datetimepicker2" placeholder="请选择日期" name="meeting_date">
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="meeting_time" class="col-lg-3 col-md-3 col-sm-3 col-xs-12 control-label">会议时间</label>
+            <div class="col-lg-1 col-md-1 col-sm-1 col-xs-2">
+              <select id="first_hour" class="selectpicker" data-hide-disabled="true" data-live-search="false">
+                <option>08</option><option>09</option><option>10</option><option>11</option><option>12</option><option>13</option>
+                <option>14</option><option>15</option><option>16</option><option>17</option><option>18</option><option>19</option>
+                <option>20</option><option>21</option>
+              </select>
+            </div>
+            <div class="col-lg-1 col-md-1 col-sm-1 col-xs-2">
+              <select id="first_minute" class="selectpicker" data-hide-disabled="true" data-live-search="false">
+                <option>00</option><option>30</option>
+              </select>
+            </div>
+            <div class="col-lg-1 col-md-1 col-sm-1 col-xs-1 to">至</div>
+            <div class="col-lg-1 col-md-1 col-sm-1 col-xs-2">
+              <select id="second_hour" class="selectpicker" data-hide-disabled="true" data-live-search="false">
+                <option>09</option><option>10</option><option>11</option><option>12</option><option>13</option>
+                <option>14</option><option>15</option><option>16</option><option>17</option><option>18</option><option>19</option>
+                <option>20</option><option>21</option>
+              </select>
+            </div>
+            <div class="col-lg-1 col-md-1 col-sm-1 col-xs-2">
+              <select id="second_minute" class="selectpicker" data-hide-disabled="true" data-live-search="false">
+                <option>00</option><option>30</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <div class="col-lg-offset-3 col-md-offset-3 col-sm-offset-3  col-lg-9 col-md-9 col-sm-9 col-xs-9 ">
+              <button type="submit" class="btn btn-success" id="now-submit">确认</button>
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <div class="row">
+        <hr>
+      </div>
+
+      <div class="row">
+        <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 footer">
+          <span>2017 © 计算机与软件学院</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 模态框 -->
+    <!-- Button trigger modal -->
+    <!-- Modal -->
+    <div class="modal fade modal-msg" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel" id="data-modal">
+    <div class="modal-dialog modal-lg modal-md modal-sm modal-xs" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+          <h4 class="modal-title" id="gridSystemModalLabel">创建结果</h4>
+        </div>
+        <div class="modal-body">
+
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-success sure" data-dismiss="modal" id="result-sure">确定</button>
+          <button type="button" class="btn btn-default sure" data-dismiss="modal" id="result-qrcode">生成二维码</button>
+        </div>
+      </div>
+    </div>
+  </div>
+    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+    <!-- Include all compiled plugins (below), or include individual files as needed -->
+    <script src="http://cdn.bootcss.com/jquery/1.11.2/jquery.min.js"></script>
+    <script src="http://cdn.bootcss.com/bootstrap/3.3.2/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src='/javascripts/moment-with-locales.min.js' ></script>
+    <script type="text/javascript" src='/javascripts/bootstrap-datetimepicker.min.js' ></script>
+    <script type="text/javascript" src='/javascripts/bootstrap-select.js' ></script>
+    <script type="text/javascript" src='/javascripts/bootstrapValidator.min.js' ></script>
+    <script type="text/javascript">
+    jQuery.browser={};(function(){jQuery.browser.msie=false; 
+    jQuery.browser.version=0;if(navigator.userAgent.match(/MSIE ([0-9]+)./)){ jQuery.browser.msie=true;jQuery.browser.version=RegExp.$1;}})();
+       $(function() {
+        //日期选择
+        $('#datetimepicker2').datetimepicker({  
+            format: 'YYYY-MM-DD',  
+            locale: moment.locale('zh-cn') ,
+        });  
+
+        //时间选择限制
+        $('#first_hour').change(function(){
+          let temp_time = $('#first_hour option:selected').val()
+          console.log('first_hour-->',temp_time)
+          $("#second_hour option").remove()
+          if(parseInt(temp_time,10) == 21){
+            $("#second_hour").append("<option>"+21+"</option>");  
+          }else{
+            for(let i=parseInt(temp_time,10)+1;i<21;i++){
+              let k = String(i)
+              if(k.length < 2)
+                k = '0' + k
+              console.log('check k -->',k)
+              $("#second_hour").append("<option>"+k+"</option>");  
+            }
+          }
+           $("#second_hour").selectpicker("refresh")
+       })//change
+
+
+
+//表单验证
+          $('form').bootstrapValidator({
+  　　　　　　　message: 'This value is not valid',
+                submitButtons: 'button[type="submit"]',
+                submitHandler: null,
+              　feedbackIcons: {
+                  　　　　　　　　valid: 'glyphicon glyphicon-ok',
+                  　　　　　　　　invalid: 'glyphicon glyphicon-remove',
+                  　　　　　　　　validating: 'glyphicon glyphicon-refresh'
+              　　　　　　　　   },
+                fields: {
+                    meeting_name: {
+                        message: '会议名称验证失败',
+                        validators: {
+                            notEmpty: {
+                                message: '会议名称不能为空!'
+                            }
+                        }
+                    },
+                    meeting_des: {
+                        validators: {
+                            notEmpty: {
+                                message: '会议描述不能为空!'
+                            }
+                        }
+                    }/*,
+                    meeting_date: {
+                        validators: {
+                            notEmpty: {
+                                message: '会议日期不能为空!'
+                            }
+                        }
+                    }*/
+                }
+          }).on('success.form.bv', function(e) {
+            console.log(e)
+            e.preventDefault();
+            let meeting_name = $('#meeting_name').val(),
+                meeting_des = $('#meeting_des').val(),
+                meeting_date = $('#datetimepicker2').val(),
+                meeting_time = $('#first_hour option:selected').val() + ':' + $('#first_minute option:selected').val() + '-' + $('#second_hour option:selected').val() + ':' + $('#second_minute option:selected').val()
+            console.log('check args-->',meeting_name,meeting_des,meeting_date,meeting_time)
+            //提交
+            $.ajax({
+              url: '/front/create', 
+              async: true,
+              dataType: 'json',
+              type: 'POST',
+              data: {
+                meeting_name:meeting_name,
+                meeting_des:meeting_des,
+                meeting_date:meeting_date,
+                meeting_time:meeting_time,
+              },
+
+              success: function(result){
+                console.log('submit success')
+                console.log(result)
+                if(result.errCode == 0){
+                  //弹出模态框
+                  $('.modal-msg').modal('show')
+                  $('.modal-body').text('会议创建成功，点击确认返回首页，或者直接生成会议二维码！')
+                  $('.modal-msg').attr('randomStr',result.result.randomStr);
+                  //$('.modal-msg').attr('apply_name',apply_name);
+                }
+                if(result.errCode == -1){
+                  //弹出模态框
+                  $('.modal-msg').modal('show')
+                  $('.modal-body').text(result.errMsg)
+                }
+              },
+              error: function(e){
+                console.log("error");
+                //console.error(e.message)
+                $('.modal-msg').modal('show')
+                $('.modal-body').text('申请操作失败')
+              },
+          });
+        });
+        $('#result-sure').on("click",function(){
+          window.location.href = '/front/overview'
+        })
+        $('#result-qrcode').on("click",function(){
+          let randomStr = $('.modal-msg').attr('randomStr');
+          console.log('check randomStr-->',randomStr)
+          window.location.href = '/front/qrcode' + '?randomStr=' + randomStr
+        })
+      })
+    </script>
+  </body>
+</html>
