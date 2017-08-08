@@ -240,7 +240,7 @@ exports.checkLogin = function(args,callback){
 						cb(1,1)
 					}
 					if(doc && doc.length != 0){
-						console.log('查找用户结果-->',doc)
+						console.log('用户存在-->',doc)
 						cb(null,doc)
 					}
 				})
@@ -249,7 +249,7 @@ exports.checkLogin = function(args,callback){
 		function(doc,cb){
 			if(args.card_pwd == doc.admin_pwd){
 				console.log('----- 密码相同 -----')
-				cb(null)
+				cb(null,doc)
 			}else{
 				console.log('----- 密码错误 -----')
 				cb(1,2)
@@ -271,11 +271,302 @@ exports.checkLogin = function(args,callback){
 		}
 		if(err == null && result){
 			console.log('----- async login success -----')
-			return callback(null,null)
+			return callback(null,result)
 		}
 	})
 }
 
+//ajax 判断用户是否存在
+exports.checkUserExist = function(args,callback){
+	let search = user.findOne({})
+		search.where('xiaoyuankahao').equals(args.card_no)
+		search.exec(function(err,doc){
+			if(err){
+				console.log('----- search err -----')
+				console.error(err)
+				return callback(err)
+			}
+			if(!doc){
+				console.log('----- 用户不存在 -----')
+				return callback(null,null)
+			}
+			if(doc && doc.length == 0){
+				console.log('----- 用户不存在 -----')
+				return callback(null,null)
+			}
+			if(doc && doc.length != 0){
+				console.log('----- 用户存在 -----')
+				console.log(doc)
+				return callback(null,doc)
+			}
+		})
+}
+
+//获取会议信息接口
+exports.getMeetingDetail = function(args,callback){
+	console.log('randomStr -->',args)
+	let search = meeting.findOne({})
+		search.where('randomStr').equals(args)
+		search.exec(function(err,doc){
+			if(err){
+				console.log('----- search err -----')
+				console.error(err)
+				return callback(err)
+			}
+			if(!doc){
+				console.log('----- 没有该会议信息 -----')
+				return callback(null,null)
+			}
+			if(doc){
+				console.log('----- 会议存在 -----')
+				console.log(doc)
+				return callback(null,doc)
+			}
+		})
+}
+
+//报名逻辑
+exports.baoming = function(args,callback){
+	async.waterfall([
+		//获取用户信息和会议详情
+		function(cb){
+			let search = user.findOne({})
+				search.where('xiaoyuankahao').equals(args.people_no)
+				search.exec(function(err,doc){
+					if(err){
+						console.log('----- search err -----')
+						console.error(err)
+						cb(err)
+					}
+					if(!doc){
+						console.log('----- 用户不存在 -----')
+						cb(1,'用户不存在')
+					}
+					if(doc && doc.length == 0){
+						console.log('----- 用户不存在 -----')
+						cb(1,'用户不存在')
+					}
+					if(doc && doc.length != 0){
+						console.log('----- 用户存在 -----')
+						console.log(doc)
+						cb(null,doc)
+					}
+				})
+		},
+		//获取会议详情
+		function(arg,cb){
+			let search = meeting.findOne({})
+				search.where('randomStr').equals(args.randomStr)
+				search.exec(function(err,doc){
+					if(err){
+						console.log('----- search err -----')
+						console.error(err)
+						cb(err)
+					}
+					if(!doc){
+						console.log('----- 没有该会议信息 -----')
+						cb(1,'没有会议信息')
+					}
+					if(doc){
+						console.log('----- 会议存在 -----')
+						console.log(doc)
+						let info = {}
+							info.user = arg
+							info.meeting = doc
+						cb(null,info)
+					}
+				})
+		},
+		//检查是否存在记录
+		function(info,cb){
+			console.log('check info -->',info)
+			let search = bmqd.findOne({})
+				search.where('randomStr').equals(args.randomStr)
+				search.where('xiaoyuankahao').equals(args.people_no)
+				search.where('baoming').equals('1')
+			search.exec(function(err,doc){
+				if(err){
+					console.log('----- search err -----')
+					console.error(err)
+					cb(err)
+				}
+				if(!doc){
+					console.log('----- 没有报名信息 -----')
+					//新插入
+					let baomingxinxi = new bmqd({
+						meeting_name:info.meeting.meeting_name,
+						meeting_des:info.meeting.meeting_des,
+						meeting_date:info.meeting.meeting_date,
+						meeting_date_timeStamp:info.meeting.meeting_date_timeStamp,
+						randomStr:args.randomStr,
+						baoming:1,
+						name:info.user.name,
+						gonghao:info.user.gonghao,
+						danwei:info.user.danwei,
+						xiaoyuankahao:args.people_no
+					})
+					baomingxinxi.save(function(e,d){
+						if(e){
+							console.log('----- save err -----')
+							console.error(e)
+							cb(e)
+						}else{
+							cb(null,d)	
+						}
+					})
+				}
+				if(doc){
+					console.log('----- 存在信息 -----')
+					cb(1,'已经报名！')
+				}
+			})
+		}
+	],function(err,result){
+		if(err && err != 1){
+			console.log('----- async err -----')
+			return callback(err)
+		}
+		if(err == null && result){
+			console.log('----- baoming success -----')
+			console.log(result)
+			return callback(null,result)
+		}
+		if(err == 1 && result){
+			console.log('----- async 已经报名 -----')
+			return callback(1,'已经报名！')
+		}
+	})
+}
+
+//签到逻辑
+exports.qiandao = function(args,callback){
+	async.waterfall([
+		//获取用户信息和会议详情
+		function(cb){
+			let search = user.findOne({})
+				search.where('xiaoyuankahao').equals(args.people_no)
+				search.exec(function(err,doc){
+					if(err){
+						console.log('----- search err -----')
+						console.error(err)
+						cb(err)
+					}
+					if(!doc){
+						console.log('----- 用户不存在 -----')
+						cb(1,'用户不存在')
+					}
+					if(doc && doc.length == 0){
+						console.log('----- 用户不存在 -----')
+						cb(1,'用户不存在')
+					}
+					if(doc && doc.length != 0){
+						console.log('----- 用户存在 -----')
+						console.log(doc)
+						cb(null,doc)
+					}
+				})
+		},
+		//获取会议详情
+		function(arg,cb){
+			let search = meeting.findOne({})
+				search.where('randomStr').equals(args.randomStr)
+				search.exec(function(err,doc){
+					if(err){
+						console.log('----- search err -----')
+						console.error(err)
+						cb(err)
+					}
+					if(!doc){
+						console.log('----- 没有该会议信息 -----')
+						cb(1,'没有会议信息')
+					}
+					if(doc){
+						console.log('----- 会议存在 -----')
+						console.log(doc)
+						let info = {}
+							info.user = arg
+							info.meeting = doc
+						cb(null,info)
+					}
+				})
+		},
+		//检查是否存在记录
+		function(info,cb){
+			console.log('check info -->',info)
+			let search = bmqd.findOne({})
+				search.where('randomStr').equals(args.randomStr)
+				search.where('xiaoyuankahao').equals(args.people_no)
+				//search.where('baoming').gte('0')
+				//search.where('qiandao').equals('1')
+			search.exec(function(err,doc){
+				if(err){
+					console.log('----- search err -----')
+					console.error(err)
+					cb(err)
+				}
+				if(!doc){
+					console.log('----- 没有记录，直接插入新纪录 -----')
+					//新插入
+					let qiandaoxinxi = new bmqd({
+						meeting_name:info.meeting.meeting_name,
+						meeting_des:info.meeting.meeting_des,
+						meeting_date:info.meeting.meeting_date,
+						meeting_date_timeStamp:info.meeting.meeting_date_timeStamp,
+						randomStr:args.randomStr,
+						qiandao:1,
+						name:info.user.name,
+						gonghao:info.user.gonghao,
+						danwei:info.user.danwei,
+						xiaoyuankahao:args.people_no
+					})
+					qiandaoxinxi.save(function(e,d){
+						if(e){
+							console.log('----- save err -----')
+							console.error(e)
+							cb(e)
+						}else{
+							cb(null,d)	
+						}
+					})
+				}
+				if(doc){
+					console.log('----- 存在记录，判断是否签到过 -----')
+					if(doc.qiandao == 1){
+						console.log('----- 已经签到过 -----')
+						cb(1,'已经签到过')
+					}else{
+						//更新qiandao字段  PersonModel.update({_id:_id},{$set:{name:'MDragon'}},function(err){});
+						bmqd.update({_id:doc._id},{$set:{qiandao:'1',update_timeStamp:moment().format('X'),update_time:moment().format('YYYY-MM-DD HH:mm:ss')}},function(ee,dd){
+							if(ee){
+								console.log('----- update err -----')
+								cb(ee)
+							}
+							else{
+								console.log('dd-->',dd)
+								cb(null,doc)
+							}
+						})
+					}
+					
+				}
+			})
+		}
+	],function(err,result){
+		if(err && err != 1){
+			console.log('----- async err -----')
+			return callback(err)
+		}
+		if(err == null && result){
+			console.log('----- async qiandao success -----')
+			console.log(result)
+			return callback(null,result)
+		}
+		if(err == 1 && result){
+			console.log('----- async 已经签到 -----')
+			return callback(1,'已经签到！')
+		}
+	})
+}
 
 //添加会议室
 exports.add_meeting_room = function(room_name,callback){
@@ -766,47 +1057,47 @@ exports.addAdminUser = function(username,password,callback){
 	})
 }
 //checkLogin
-exports.checkLogin = function(username,password,callback){
-	async.waterfall([
-		function(cb){
-			admin.find({'username':username},function(err,doc){
-				if(err){
-					console.log('----- search err -----')
-					cb(err,null)
-				}
-				if(!doc || doc.length == 0){
-					console.log('----- username not existed -----')
-					cb(1,1)
-				}
-				if(doc && doc.length != 0){
-					console.log('----- check admin detail -----')
-					console.log(doc)
-					cb(null,doc[0])
-				}
-			})
-		},
-		function(doc,cb){
-			if(doc.password == password){
-				console.log('----- login confirm -----')
-				cb(null,doc)
-			}
-		}
-	],function(err,result){
-		if(err && result == 1){
-			console.log('----- admin not existed -----')
-			callback(1,1)
-		}
-		if(err && result == null){
-			console.log('----- async err -----')
-			callback(err,null)
-		}
-		if(err == null){
-			console.log('----- final check -----')
-			callback(null,result)
-		}
+// exports.checkLogin = function(username,password,callback){
+// 	async.waterfall([
+// 		function(cb){
+// 			admin.find({'username':username},function(err,doc){
+// 				if(err){
+// 					console.log('----- search err -----')
+// 					cb(err,null)
+// 				}
+// 				if(!doc || doc.length == 0){
+// 					console.log('----- username not existed -----')
+// 					cb(1,1)
+// 				}
+// 				if(doc && doc.length != 0){
+// 					console.log('----- check admin detail -----')
+// 					console.log(doc)
+// 					cb(null,doc[0])
+// 				}
+// 			})
+// 		},
+// 		function(doc,cb){
+// 			if(doc.password == password){
+// 				console.log('----- login confirm -----')
+// 				cb(null,doc)
+// 			}
+// 		}
+// 	],function(err,result){
+// 		if(err && result == 1){
+// 			console.log('----- admin not existed -----')
+// 			callback(1,1)
+// 		}
+// 		if(err && result == null){
+// 			console.log('----- async err -----')
+// 			callback(err,null)
+// 		}
+// 		if(err == null){
+// 			console.log('----- final check -----')
+// 			callback(null,result)
+// 		}
 		
-	})
-}
+// 	})
+// }
 //get applyRecord for applier to check
 exports.applyRecord = function(limit,offset,applier,callback){
 	console.log('applier is -->',applier)

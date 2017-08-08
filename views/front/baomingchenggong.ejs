@@ -5,7 +5,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <!-- 上述3个meta标签*必须*放在最前面，任何其他内容都*必须*跟随其后！ -->
-    <title>用户登录</title>
+    <title>报名成功</title>
 
     <!-- Bootstrap -->
     <link rel="stylesheet" href="http://cdn.bootcss.com/bootstrap/3.3.2/css/bootstrap.min.css">
@@ -24,6 +24,11 @@
       body{
         padding: 0;
         font-family: '微软雅黑';;
+      }
+      p{
+        margin-top: 10px;
+        font-size: 20px;
+        color:red;
       }
       .head{
         font-size:26px;
@@ -138,46 +143,42 @@
       .bootstrap-select > .dropdown-toggle {
         width: 100%;
       }
+      @media (max-width: 768px) {
+        .glyphicon ,.glyphicon-ok{
+          color:#7CCD7C;
+          font-size:210px;
+          display: block;
+          text-align: center;
+        }
+      }
+      @media (min-width: 768px) {
+        .glyphicon, .glyphicon-ok{
+          color:#7CCD7C;
+          font-size:325px;
+          display: block;
+          text-align: center;
+        }
+      }
     </style>
   </head>
   <body>
     <div class="container">
       <div class="row">
-        <div class="col-lg-9 col-md-9 col-sm-12 col-xs-12">
-          <img src="../images/szucsselogo.png" class="img-responsive" alt="">  
+        <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+          <img src="/images/szucsselogo.png" class="img-responsive" alt="">  
+        </div>
+      </div>
+          
+      <div class="row">
+        <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+          <p style="text-align: center;">报名成功！</p>
         </div>
       </div>
 
       <div class="row">
-        <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 ">
-          <p class="text-center head"> <span class="glyphicon glyphicon-user"></span> 用户登录</p>
+        <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+          <span class="glyphicon glyphicon-ok"  ></span>
         </div>
-      </div>
-
-      <div class="row uniform">
-        <form class="form-horizontal">
-
-          <div class="form-group">
-            <label for="card_no" class="col-lg-4 col-md-4 col-sm-4 col-xs-12 control-label">校园卡号</label>
-            <div class="col-lg-4 col-md-4 col-sm-4 col-xs-12 meeting_info" id="people_noo">
-              <input type="text" class="form-control" id="card_no" placeholder="请输入校园卡号" name="card_no">
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label for="card_pwd" class="col-lg-4 col-md-4 col-sm-4 col-xs-12 control-label">密码</label>
-            <div class="col-lg-4 col-md-4 col-sm-4 col-xs-12 meeting_info" id="people_noo">
-              <input type="password" class="form-control" id="card_pwd" placeholder="密码" name="card_pwd">
-            </div>
-          </div>
-          
-          <div class="form-group">
-            <div class="col-lg-offset-4 col-md-offset-4 col-sm-offset-4  col-lg-4 col-md-4 col-sm-4 col-xs-4 ">
-              <button type="submit" class="btn btn-success" id="now-submit">确认</button>
-            </div>
-          </div>
-
-        </form>
       </div>
 
       <div class="row">
@@ -199,7 +200,7 @@
       <div class="modal-content">
         <div class="modal-header">
           <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-          <h4 class="modal-title" id="gridSystemModalLabel">提示</h4>
+          <h4 class="modal-title" id="gridSystemModalLabel">报名结果</h4>
         </div>
         <div class="modal-body">
 
@@ -228,69 +229,36 @@
     jQuery.browser.version=0;if(navigator.userAgent.match(/MSIE ([0-9]+)./)){ jQuery.browser.msie=true;jQuery.browser.version=RegExp.$1;}})();
        $(function() {
 
-        //表单验证
-          $('form').bootstrapValidator({
-  　　　　　　　message: 'This value is not valid',
-                excluded : [':disabled'],//[':disabled', ':hidden', ':not(:visible)']
-                submitButtons: 'button[type="submit"]',
-                submitHandler: null,
-              　feedbackIcons: {
-                  　　　　　　　　valid: 'glyphicon glyphicon-ok',
-                  　　　　　　　　invalid: 'glyphicon glyphicon-remove',
-                  　　　　　　　　validating: 'glyphicon glyphicon-refresh'
-              　　　　　　　　   },
-                fields: {//(?!.*select)^.*$
-                    card_no: {
-                        message: '校园卡号验证失败',
-                        validators: {
-                            notEmpty: {
-                                message: '校园卡号不能为空!'
-                            },
-                            regexp: {
-                               regexp: /^\d{6}$/,
-                               message: '请输入6位校园卡号'
-                           }/*,
-                           threshold :  6 , //有6字符以上才发送ajax请求，（input中输入一个字符，插件会向服务器发送一次，设置限制，6字符以上才开始）
-                           remote:{
-                            url:'/front/checkUserExist',
-                            message:'用户不存在！',
-                            type:'POST',
-                            delay:'1000'
-                           }*/
-                        }
-                    },
-                    card_pwd:{
-                      message: '请输入密码',
-                      validators:{
-                        notEmpty: {
-                            message: '密码不能为空!'
-                        }
-                      }
-                    }
-                }
-          }).on('success.form.bv', function(e) {
-            //return false
-            console.log(e)
-            e.preventDefault();//防止自动提交
-            let card_no = $('#card_no').val(),
-                card_pwd = $('#card_pwd').val()
-            console.log('check args-->',card_no,card_pwd)
+        moment.locale('zh-cn')
+        //后台传递数据对form表单赋值
+    
+
+        $('#now-submit').on('click',function(){
+
+            let randomStr = $('#randomStr').val(),
+                people_no = $('#people_no').val()
+            console.log('check args-->',randomStr,people_no)
+
             //提交
             $.ajax({
-              url: '/front/login', 
+              url: '/front/baoming', 
               async: true,
               dataType: 'json',
               type: 'POST',
               data: {
-                card_no:card_no,
-                card_pwd:card_pwd
+                randomStr:randomStr,
+                people_no:people_no
               },
 
               success: function(result){
-                console.log('login success')
+                console.log('扫码报名 success')
                 console.log(result)
                 if(result.errCode == 0){
-                  window.location.href = '/front/overview'
+                  //弹出模态框
+                  $('.modal-msg').modal('show')
+                  $('.modal-body').text('报名成功！')
+                  //$('.modal-msg').attr('randomStr',result.result.randomStr);
+                  //$('.modal-msg').attr('apply_name',apply_name);
                 }
                 if(result.errCode == -1){
                   //弹出模态框
@@ -300,16 +268,17 @@
               },
               error: function(e){
                 console.log("error");
-                //console.error(e.message)
+                console.log(e)
+                console.error(e.message)
                 $('.modal-msg').modal('show')
-                $('.modal-body').text('登录失败')
+                $('.modal-body').text('报名失败！')
               },
           });
-        });//on
-
+        })
+        
         //点击模态框确认按钮
         $('#result-sure').on('click',function(){
-          window.location.href = '/front/login'
+          //window.location.reload()
         })
       })
 

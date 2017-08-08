@@ -6,6 +6,8 @@
 var express = require('express')
 var router = express.Router()
 var logic = require('../../logic/logic')
+const moment = require('moment')
+moment.locale('zh-cn')
 //var logger = require('../../log/logConfig').logger
 //var logic = require('../../logic/logic')
 
@@ -13,6 +15,7 @@ var logic = require('../../logic/logic')
 router.get('/login',function(req,res){
 	res.render('front/login')
 }).post('/login',function(req,res){
+	console.log('----- in login router -----')
 	logic.checkLogin(req.body,function(error,result){
 		if((error && error !=1) || (error && error != 2)){
 			return res.json({'errCode':-1,'errMsg':error.message})
@@ -23,20 +26,38 @@ router.get('/login',function(req,res){
 		if(error == 1 && result == 2){
 			return res.json({'errCode':-1,'errMsg':'密码错误'})
 		}
-		if(error == null && result == null){
+		if(error == null && result){
+			console.log(result)
+			req.session.user = result
 			return res.json({'errCode':0,'Msg':'登录成功'})
 		}
 	})
 })
 
+//用户退出
+router.get('/logout',function(req,res){
+	console.log('----- in router logout -----')
+	req.session.user = null;
+    req.session.error = null;
+    res.redirect("/front/login");
+})
+
 //概览页面
 router.get('/overview',function(req,res){
-	res.render('front/overview')
+	if(!req.session.user){
+		console.log('----- user not login -----')
+		return res.redirect('/front/login')
+	}
+	res.render('front/overview',{name:req.session.user.name})
 })
 
 //创建会议界面
 router.get('/create',function(req,res){
-	res.render('front/create')
+	if(!req.session.user){
+		console.log('----- user not login -----')
+		return res.redirect('/front/login')
+	}
+	res.render('front/create',{name:req.session.user.name})
 }).post('/create',function(req,res){
 	console.log('----- create router -----')
 	logic.createMeeting(req.body,function(error,result){
@@ -51,6 +72,10 @@ router.get('/create',function(req,res){
 
 //二维码页面
 router.get('/qrcode',function(req,res){
+	if(!req.session.user){
+		console.log('----- user not login -----')
+		return res.redirect('/front/login')
+	}
 	//获取近一周的会议，供选择
 	logic.select_meeting(function(error,result){
 		if(error){
@@ -62,7 +87,7 @@ router.get('/qrcode',function(req,res){
 			return res.json({'errCode':-1,'errMsg':'result is null'})
 		}
 		//have meetings 
-		res.render('front/qrcode',{'result':result})
+		res.render('front/qrcode',{'result':result,'name':req.session.user.name})
 	})
 })
 
@@ -80,6 +105,10 @@ router.get('/adduser',function(req,res){
 
 //手工签到页面
 router.get('/sgqd',function(req,res){
+	if(!req.session.user){
+		console.log('----- user not login -----')
+		return res.redirect('/front/login')
+	}
 	//获取近一周的会议，供选择
 	logic.select_meeting(function(error,result){
 		if(error){
@@ -91,7 +120,7 @@ router.get('/sgqd',function(req,res){
 			return res.json({'errCode':-1,'errMsg':'result is null'})
 		}
 		//have meetings 
-		res.render('front/sgqd',{'result':result})
+		res.render('front/sgqd',{'result':result,'name':req.session.user.name})
 	})
 }).post('/sgqd',function(req,res){
 	console.log('----- 手工签到router -----')
@@ -108,6 +137,154 @@ router.get('/sgqd',function(req,res){
 	})
 })
 
+//检查用户是否存在
+router.post('/checkUserExist',function(req,res){
+	console.log('----- in router checkUserExist -----')
+	logic.checkUserExist(req.body,function(error,result){
+		if(error){
+			console.log('----- router error -----')
+			return 
+		}
+		if(result == null){
+			return res.json({'valid':false})
+		}
+		if(result){
+			return res.json({'valid':true})
+		}
+	})
+})
+
+//报名接口
+router.get('/baoming',function(req,res){
+	if(req.query.r && req.query.b == 1){
+		//调用统一身份认证接口，获取报名人信息，并将会议信息返回页面
+		//这里假设获取用户的校园卡号为 000001，姓名为 aaa
+		logic.getMeetingDetail(req.query.r,function(error,result){
+			if(error){
+				console.log('----- baoming router error -----')
+				return res.json({'errCode':-1,'errMsg':'数据库出错！'})
+			}
+			if(result == null){
+				console.log('----- baoming router result null -----')
+				return res.json({'errCode':-1,'errMsg':'没有该会议信息！'})
+			}
+			if(result){
+				//这里到时再增加一个判断，获取用户信息后直接查询是否已经报名，如果是，直接跳转到已报名页面并列出会议详情
+				console.log('----- baoming router -----')
+				return res.render('front/baoming',{'xiaoyuankahao':'000001','name':'aaa','result':result})
+			}
+		})
+	}else{
+		//return res.json({'errCode':-1,'errMsg':'链接有误！'})
+	}
+}).post('/baoming',function(req,res){
+	logic.baoming(req.body,function(error,result){
+		if(error && error != 1){
+			console.log('----- baoming router err -----')
+			return res.json({'errCode':-1,'errMsg':error.message})
+		}
+		if(error == 1 && result){
+			console.log('----- baoming router 已经报名 -----')
+			return res.json({'errCode':-1,'errMsg':'已经报名过'})
+		}
+		if(error == null && result){
+			console.log('----- baoming router success -----')
+			//return res.redirect('front/baomingchenggong',{'result':result});
+			//return res.render('front/baomingchenggong',{'result':result})
+			return res.json({'errCode':0,'errMsg':'报名成功'})
+		}
+	})
+})
+
+//签到接口
+router.get('/qiandao',function(req,res){
+	if(req.query.d && req.query.d == 1){
+		console.log('----- qiandao router & 动态二维码 -----')
+		let nowTimeStamp = moment().format('X')
+		console.log('check nowTimeStamp-->',nowTimeStamp)
+		console.log('check t-->',req.query.t)
+		if(nowTimeStamp - req.query.t > 180){
+			console.log('----- 二维码过期 -----')
+			res.render('front/guoqi')
+			//返回一个过期页面
+		}else{
+			//调用统一身份认证接口，获取报名人信息，并将会议信息返回页面
+			//这里假设获取用户的校园卡号为 000001，姓名为 aaa
+			logic.getMeetingDetail(req.query.r,function(error,result){
+				if(error){
+					console.log('----- qiandao router error -----')
+					return res.json({'errCode':-1,'errMsg':'数据库出错！'})
+				}
+				if(result == null){
+					console.log('----- qiandao router result null -----')
+					return res.json({'errCode':-1,'errMsg':'没有该会议信息！'})
+				}
+				if(result){
+					//这里到时再增加一个判断，获取用户信息后直接查询是否已经报名，如果是，直接跳转到已报名页面并列出会议详情
+					console.log('----- qiandao router -----')
+					return res.render('front/qiandao',{'xiaoyuankahao':'000001','name':'aaa','result':result})
+				}
+			})
+		}
+	}
+	if(req.query.d == 0){
+		console.log('----- qiandao router & 静态二维码 -----')
+		//调用统一身份认证接口，获取报名人信息，并将会议信息返回页面
+			//这里假设获取用户的校园卡号为 000001，姓名为 aaa
+			logic.getMeetingDetail(req.query.r,function(error,result){
+				if(error){
+					console.log('----- qiandao router error -----')
+					return res.json({'errCode':-1,'errMsg':'数据库出错！'})
+				}
+				if(result == null){
+					console.log('----- qiandao router result null -----')
+					return res.json({'errCode':-1,'errMsg':'没有该会议信息！'})
+				}
+				if(result){
+					//这里到时再增加一个判断，获取用户信息后直接查询是否已经报名，如果是，直接跳转到已报名页面并列出会议详情
+					console.log('----- qiandao router -----')
+					return res.render('front/qiandao',{'xiaoyuankahao':'000001','name':'aaa','result':result})
+				}
+			})
+	}
+}).post('/qiandao',function(req,res){
+	logic.qiandao(req.body,function(error,result){
+		if(error && error != 1){
+			console.log('----- qiandao router err -----')
+			return res.json({'errCode':-1,'errMsg':error.message})
+		}
+		if(error == 1 && result){
+			console.log('----- qiandao router 已经签到 -----')
+			return res.json({'errCode':-1,'errMsg':'已经签到过'})
+		}
+		if(error == null && result){
+			console.log('----- qiandao router success -----')
+			//return res.redirect('front/baomingchenggong',{'result':result});
+			//return res.render('front/baomingchenggong',{'result':result})
+			return res.json({'errCode':0,'errMsg':'签到成功'})
+		}
+	})
+})
+
+//已报名页面
+router.get('/yibaoming',function(req,res){
+	res.render('front/yibaoming')
+})
+
+//报名成功页面
+router.get('/baomingchenggong',function(req,res){
+	res.render('front/baomingchenggong')
+})
+
+//已签到页面
+router.get('/yiqiandao',function(req,res){
+	res.render('front/yiqiandao')
+})
+
+//签到成功页面
+router.get('/qiandaochenggong',function(req,res){
+	res.render('front/qiandaochenggong')
+})
 
 //get method : for render a page 
 //post method : for ajax add meeting room 

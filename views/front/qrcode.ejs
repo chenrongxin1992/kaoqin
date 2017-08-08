@@ -144,7 +144,7 @@
           <img src="../images/szucsselogo.png" class="img-responsive" alt="">  
         </div>
         <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12 user">
-          <span class="pull-right user">首页 | 当前用户:aaa | 退出</span>
+          <span class="pull-right user"> <a href="/front/overview">首页</a> | 当前用户:<span style="color: red"> <%=user.name%></span>  | <a href="/front/logout">退出</a></span>
         </div>
       </div>
 
@@ -342,7 +342,7 @@
         let randomStr = $('#randomStr option:selected').val()
         console.log('点击报名按钮，会议的随机码是-->',randomStr)
         //116.13.96.53:81
-        let baomingUrl = 'http://116.13.96.53:81/?r=' + randomStr + '&b=1'
+        let baomingUrl = 'http://116.13.96.53:81/front/baoming/?r=' + randomStr + '&b=1'
         console.log('点击报名按钮，报名链接是-->',baomingUrl)
         $("#code").qrcode({ 
             background : '#F0F8FF',
@@ -393,7 +393,7 @@
           console.log('第一次获取的会议二维码是-->',randomStr)
 
           //116.13.96.53:81,签到链接
-          let qiandaoUrl = 'http://116.13.96.53:81/?r=' + randomStr + '&q=1' + '&d=1' + '&t=' + timeStamp
+          let qiandaoUrl = 'http://116.13.96.53:81/front/qiandao/?r=' + randomStr + '&q=1' + '&d=1' + '&t=' + timeStamp
           console.log('第一次的签到链接-->',qiandaoUrl)
 
           $("#code").empty()
@@ -411,7 +411,7 @@
           //获取当前会议唯一码
           let randomStr = $('#randomStr option:selected').val()
           console.log('获取的会议随机码是-->',randomStr)
-          let qiandaoUrl = 'http://116.13.96.53:81/?r=' + randomStr + '&q=1' + '&d=0'
+          let qiandaoUrl = 'http://116.13.96.53:81/front/qiandao/?r=' + randomStr + '&q=1' + '&d=0'
           console.log('检查签到链接-->',qiandaoUrl)
           $("#code").empty()
           $("#code").qrcode({ 
@@ -442,7 +442,7 @@
               console.log('第一次获取的会议二维码是-->',randomStr)
 
               //116.13.96.53:81,签到链接
-              let qiandaoUrl = 'http://116.13.96.53:81/?r=' + randomStr + '&q=1' + '&d=1' + '&t=' + timeStamp
+              let qiandaoUrl = 'http://116.13.96.53:81/front/qiandao/?r=' + randomStr + '&q=1' + '&d=1' + '&t=' + timeStamp
               console.log('第一次的签到链接-->',qiandaoUrl)
 
               $("#code").empty()
@@ -460,7 +460,7 @@
               //获取当前会议唯一码
               let randomStr = $('#randomStr option:selected').val()
               console.log('check randomStr after click-->',randomStr)
-              let qiandaoUrl = 'http://116.13.96.53:81/?r=' + randomStr + '&q=1' + '&d=0'
+              let qiandaoUrl = 'http://116.13.96.53:81/front/qiandao/?r=' + randomStr + '&q=1' + '&d=0'
               console.log('关闭开关后的签到链接-->',qiandaoUrl)
               $("#code").empty()
               $("#code").qrcode({ 
@@ -484,7 +484,7 @@
       let timeStamp = moment().format('X')
       console.log('当前时间戳-->',timeStamp)
       //116.13.96.53:81,签到链接
-      let qiandaoUrl = 'http://116.13.96.53:81/?r=' + randomStr + '&q=1' + '&d=1' + '&t=' + timeStamp
+      let qiandaoUrl = 'http://116.13.96.53:81/front/qiandao/?r=' + randomStr + '&q=1' + '&d=1' + '&t=' + timeStamp
       console.log('签到链接-->',qiandaoUrl)
       $("#code").empty()
       $("#code").qrcode({ 

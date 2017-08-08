@@ -5,7 +5,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <!-- 上述3个meta标签*必须*放在最前面，任何其他内容都*必须*跟随其后！ -->
-    <title>手工签到</title>
+    <title>会议签到</title>
 
     <!-- Bootstrap -->
     <link rel="stylesheet" href="http://cdn.bootcss.com/bootstrap/3.3.2/css/bootstrap.min.css">
@@ -144,76 +144,68 @@
     <div class="container">
       <div class="row">
         <div class="col-lg-9 col-md-9 col-sm-12 col-xs-12">
-          <img src="../images/szucsselogo.png" class="img-responsive" alt="">  
-        </div>
-        <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12 user">
-          <span class="pull-right user"><a href="/front/overview">首页</a> | 当前用户:<span style="color: red"> <%=user.name%></span>  | <a href="/front/logout">退出</a></span>
+          <img src="/images/szucsselogo.png" class="img-responsive" alt="">  
         </div>
       </div>
 
       <div class="row">
         <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 ">
-          <p class="text-center head"><span class="glyphicon glyphicon-pencil"></span> 手工签到</p>
+          <p class="text-center head"><span class="glyphicon glyphicon-pencil"></span> 会议签到</p>
         </div>
       </div>
 
       <div class="row uniform">
         <form class="form-horizontal">
           <div class="form-group">
-            <label for="meeting_name" class="col-lg-5 col-md-5 col-sm-5 col-xs-12 control-label">请选择会议</label>
+            <label for="meeting_name" class="col-lg-5 col-md-5 col-sm-5 col-xs-12 control-label">会议名称</label>
             <div class="col-lg-5 col-md-5 col-sm-5 col-xs-12">
-              <select id="meeting_name" class="selectpicker" data-hide-disabled="true" data-live-search="false" name="meeting_name">
-                  <option>select</option>
-                  <% for(let i=0;i<result.length;i++) { %>
-                    <option><%=result[i].meeting_name%></option>
-                  <% } %>
-              </select>
+              <input type="text" class="form-control" id="meeting_name" name="meeting_name" readonly="readonly">
             </div>
           </div>
-  
-          <div class="form-group" >
+          
+          <div class="form-group">
             <label for="randomStr" class="col-lg-5 col-md-5 col-sm-5 col-xs-12 control-label">会议编号</label>
-            <div class="col-lg-5 col-md-5 col-sm-5 col-xs-12">
-              <select id="randomStr" class="selectpicker" data-hide-disabled="true" data-live-search="false">
-                <option>select</option>
-              </select>
+            <div class="col-lg-5 col-md-5 col-sm-5 col-xs-12 meeting_info" id="meeting_date_time">
+              <input type="text" class="form-control" id="randomStr" name="randomStr" readonly="readonly">
             </div>
           </div>
 
           <div class="form-group">
             <label for="meeting_date" class="col-lg-5 col-md-5 col-sm-5 col-xs-12 control-label">会议时间</label>
             <div class="col-lg-5 col-md-5 col-sm-5 col-xs-12 meeting_info" id="meeting_date_time">
-              暂无
+              <input type="text" class="form-control" id="meeting_date" name="meeting_date" readonly="readonly">
             </div>
           </div>
 
           <div class="form-group">
             <label for="meeting_des" class="col-lg-5 col-md-5 col-sm-5 col-xs-12 control-label">会议详情</label>
-            <div class="col-lg-5 col-md-5 col-sm-5 col-xs-12 meeting_info" id="meeting_des">
-              暂无
+            <div class="col-lg-5 col-md-5 col-sm-5 col-xs-12 meeting_info" id="">
+              <textarea class="form-control" rows="3" id="meeting_des"  name="meeting_des" readonly="readonly"></textarea>
+              <!-- <input type="text" class="form-control" id="meeting_des" name="meeting_des" readonly="readonly"> -->
             </div>
           </div>
 
           <div class="form-group">
-            <label for="people_no" class="col-lg-5 col-md-5 col-sm-5 col-xs-12 control-label">学号或工号</label>
+            <label for="people_no" class="col-lg-5 col-md-5 col-sm-5 col-xs-12 control-label">校园卡号</label>
             <div class="col-lg-5 col-md-5 col-sm-5 col-xs-12 meeting_info" id="people_noo">
-              <input type="text" class="form-control" id="people_no" placeholder="请输入学号或工号" name="people_no">
+              <input type="text" class="form-control" id="people_no" name="people_no" readonly="readonly">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="name" class="col-lg-5 col-md-5 col-sm-5 col-xs-12 control-label">姓名</label>
+            <div class="col-lg-5 col-md-5 col-sm-5 col-xs-12 meeting_info" id="people_noo">
+              <input type="text" class="form-control" id="name" name="name" readonly="readonly">
             </div>
           </div>
           
           <div class="form-group">
             <div class="col-lg-offset-5 col-md-offset-5 col-sm-offset-5  col-lg-5 col-md-5 col-sm-5 col-xs-5 ">
-              <button type="submit" class="btn btn-success" id="now-submit">确认</button>
+              <button type="submit" class="btn btn-success" id="now-submit">确认签到</button>
             </div>
           </div>
 
         </form>
-      </div>
-
-      <div class="row ">
-        <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 ">
-          <span class="note">备注：此处只显示最近一周将举行的会议</span>
-        </div>
       </div>
 
       <div class="row">
@@ -235,7 +227,7 @@
       <div class="modal-content">
         <div class="modal-header">
           <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-          <h4 class="modal-title" id="gridSystemModalLabel">手工签到结果</h4>
+          <h4 class="modal-title" id="gridSystemModalLabel">报名结果</h4>
         </div>
         <div class="modal-body">
 
@@ -264,125 +256,67 @@
     jQuery.browser.version=0;if(navigator.userAgent.match(/MSIE ([0-9]+)./)){ jQuery.browser.msie=true;jQuery.browser.version=RegExp.$1;}})();
        $(function() {
 
-        //时间选择限制
-        $('#meeting_name').change(function(){
+        moment.locale('zh-cn')
+        //后台传递数据对form表单赋值
+        let temp_result = '<%- JSON.stringify(result) %>'
+            temp_result = JSON.parse(temp_result);
+        console.log(temp_result)
+        $('#meeting_name').val(temp_result.meeting_name)
+        $('#randomStr').val(temp_result.randomStr)
+        let date = temp_result.meeting_date + ' ' + moment(temp_result.meeting_date,'YYYY-MM-DD').format('dddd') + ' ' + temp_result.meeting_time
+        $('#meeting_date').val(date)
+        $('#meeting_des').val(temp_result.meeting_des)
+        $('#people_no').val('<%- xiaoyuankahao %>')
+        $('#name').val('<%- name %>')
 
-          let temp_meetingName = $('#meeting_name option:selected').val()
-          console.log('当前选择会议名-->',temp_meetingName)
-          let temp_result = '<%- JSON.stringify(result) %>' //字符串
-              temp_result = JSON.parse(temp_result);
-          console.log('一周内会议信息-->',temp_result)
+        $('#now-submit').on('click',function(){
 
-          $("#randomStr option").remove()
-          $("#meeting_date_time").empty()
-          $("#meeting_des").empty()
-
-          for(let i=0; i<temp_result.length; i++){
-            if(temp_meetingName == temp_result[i].meeting_name){
-              console.log('----- 找到该会议 -----')
-              console.log('该会议随机码-->',temp_result[i].randomStr)
-              console.log('日期-->',temp_result[i].meeting_date,temp_result[i].meeting_time)
-              console.log('描述-->',temp_result[i].meeting_des)
-              $("#randomStr").append("<option>"+temp_result[i].randomStr+"</option>");
-              $("#meeting_date_time").append("<p>"+temp_result[i].meeting_date + '  ' + temp_result[i].zhouji + '  ' +temp_result[i].meeting_time+"</p>");
-              $("#meeting_des").append("<p>"+temp_result[i].meeting_des + "</p>");
-            }
-          }
-          if(temp_meetingName == 'select'){
-              $("#meeting_date_time").append("<p>"+'暂无信息'+"</p>");
-              $("#meeting_des").append("<p>"+'暂无信息' + "</p>");
-              $('#code').empty()
-          }
-          $("#randomStr").selectpicker("refresh")
-       })//change
-
-        //表单验证
-          $('form').bootstrapValidator({
-  　　　　　　　message: 'This value is not valid',
-                excluded : [':disabled'],//[':disabled', ':hidden', ':not(:visible)']
-                submitButtons: 'button[type="submit"]',
-                submitHandler: null,
-              　feedbackIcons: {
-                  　　　　　　　　valid: 'glyphicon glyphicon-ok',
-                  　　　　　　　　invalid: 'glyphicon glyphicon-remove',
-                  　　　　　　　　validating: 'glyphicon glyphicon-refresh'
-              　　　　　　　　   },
-                fields: {//(?!.*select)^.*$
-                    people_no: {
-                        message: '学号或工号验证失败',
-                        validators: {
-                            notEmpty: {
-                                message: '校园卡号不能为空!'
-                            },
-                            regexp: {
-                               regexp: /^\d{6}$/,
-                               message: '请输入6位校园卡号'
-                           }
-                                  //^\d{n}$
-                        }
-                    },
-                    meeting_name:{
-                      message: '请选择会议',
-                      validators:{
-                        regexp:{
-                          regexp:/(?!.*select)^.*$/,
-                          message:'请选择会议'
-                        }
-                      }
-                    }
-                }
-          }).on('success.form.bv', function(e) {
-            //return false
-            console.log(e)
-            e.preventDefault();
-            let meeting_name = $('#meeting_name').val(),
-                meeting_des = $('#meeting_des').text(),
-                meeting_date = $('#meeting_date_time').text(),
-                randomStr = $('#randomStr option:selected').val(),
+            let randomStr = $('#randomStr').val(),
                 people_no = $('#people_no').val()
-            console.log('check args-->',meeting_name,meeting_des,meeting_date,randomStr,people_no)
+            console.log('check args-->',randomStr,people_no)
+
             //提交
             $.ajax({
-              url: '/front/sgqd', 
+              url: '/front/qiandao', 
               async: true,
               dataType: 'json',
               type: 'POST',
               data: {
-                meeting_name:meeting_name,
-                meeting_des:meeting_des,
-                meeting_date:meeting_date,
                 randomStr:randomStr,
                 people_no:people_no
               },
 
               success: function(result){
-                console.log('手工签到 success')
+                console.log('扫码报名 success')
                 console.log(result)
-                if(result.errCode == 0){
+                if(result.errCode == 0 && result.errMsg == '签到成功'){
+                  window.location.href = '/front/qiandaochenggong'
                   //弹出模态框
-                  $('.modal-msg').modal('show')
-                  $('.modal-body').text('签到成功，点击确认返回！')
+                  // $('.modal-msg').modal('show')
+                  // $('.modal-body').text('报名成功！')
                   //$('.modal-msg').attr('randomStr',result.result.randomStr);
                   //$('.modal-msg').attr('apply_name',apply_name);
                 }
-                if(result.errCode == -1){
-                  //弹出模态框
-                  $('.modal-msg').modal('show')
-                  $('.modal-body').text(result.errMsg)
+                if(result.errCode == -1 && result.errMsg == '已经签到过'){
+                  window.location.href = '/front/yiqiandao'
+                  // //弹出模态框
+                  // $('.modal-msg').modal('show')
+                  // $('.modal-body').text(result.errMsg)
                 }
               },
               error: function(e){
                 console.log("error");
-                //console.error(e.message)
+                console.log(e)
+                console.error(e.message)
                 $('.modal-msg').modal('show')
-                $('.modal-body').text('签到操作失败')
+                $('.modal-body').text('签到失败！')
               },
           });
-        });//on
-
+        })
+        
         //点击模态框确认按钮
         $('#result-sure').on('click',function(){
-          window.location.reload()
+          //window.location.reload()
         })
       })
 
