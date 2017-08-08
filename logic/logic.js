@@ -133,7 +133,7 @@ exports.sgqd = function(args,callback){
 	async.waterfall([
 		//获取参会人员信息，由学号获取
 		function(cb){
-			let search = user.find({})
+			let search = user.findOne({})
 				search.where('xiaoyuankahao').equals(args.people_no)
 				search.exec(function(e,docs){
 					if(e){
@@ -143,7 +143,8 @@ exports.sgqd = function(args,callback){
 					}
 					if(docs && docs.length == 0){
 						console.log('----- docs is existed but length is null -----')
-						cb(null,null)
+						console.log('docs-->',docs)
+						cb(null,docs)
 					}
 					if(docs && docs.length != 0){
 						console.log('check docs -->',docs)
@@ -153,55 +154,84 @@ exports.sgqd = function(args,callback){
 		},
 		//判断是否已经签到
 		function(docs,cb){
-			let search = bmqd.find({})
+			let search = bmqd.findOne({})
 				search.where('xiaoyuankahao').equals(docs.xiaoyuankahao)
-				search.where('qiandao').equals('1')
+				search.where('randomStr').equals(args.randomStr)
+				//search.where('qiandao').equals('1')
 				search.exec(function(e,result){
 					if(e){
 						console.log('----- search err -----')
 						console.error(e)
 						cb(e)
 					}
-					if(result && result.length == 0){
-						console.log('----- 没有签到信息 -----')
+					if(!result){
+						console.log('----- 没有记录，新建 -----')
 						console.log('result-->',result)
 						cb(null,docs)
 					}
 					if(result && result.length != 0){
-						console.log('----- 已经签到过 -----')
-						console.log('result-->',result)
-						cb(1,1)
+						console.log('----- 有记录，判断是否签到 -----')
+						cb(null,result)
+						/*if(result.qiandao == 1){
+							console.log('----- 已经签到过 -----')
+							console.log('result-->',result)
+							cb(1,1)
+						}
+						if(result.qiandao == 0){
+
+						}*/
 					}
 				})
 		},
 		function(docs,cb){
 			console.log('参数内容-->',docs)
-			let newQiandao = new bmqd({
-				meeting_name:args.meeting_name,
-				meeting_date:args.meeting_date,
-				meeting_des:args.meeting_des,
-				randomStr:args.randomStr,
-				qiandao:'1',
-				update_time:moment().format('YYYY-MM-DD HH:mm:ss'),
-				update_timeStamp:moment().format('X'),
-				name:docs[0].name,
-				gonghao:docs[0].gonghao,
-				danwei:docs[0].danwei,
-				xiaoyuankahao:docs[0].xiaoyuankahao
-			})
-			console.log('newQiandao-->',newQiandao)
-			newQiandao.save(function(e,docs){
-				if(e){
-					console.log('----- 手工签到出错 -----')
-					console.error(e)
-					cb(e)
-				}
-				if(docs && docs.length != 0){
-					console.log('----- 手工签到成功 -----')
-					console.log('docs -->',docs)
-					cb(null,docs)
-				}
-			})
+			if(docs.qiandao == 1){
+				console.log('----- 已经签到过 -----')
+				cb(1,1)
+			}
+			else if(docs.qiandao == 0){
+				console.log('----- 更新qiandao字段 -----')
+				//更新签到字段  PersonModel.update({_id:_id},{$set:{name:'MDragon'}},function(err){});
+				bmqd.update({_id:docs._id},{$set:{qiandao:'1',update_timeStamp:moment().format('X'),update_time:moment().format('YYYY-MM-DD HH:mm:ss')}},function(err){
+					if(err){
+						console.log('----- err -----')
+						console.log(err)
+						cb(err)
+					}
+					else{
+						cb(null,2)
+					}
+				})
+			}
+			else{
+				console.log('----- 没签到 -----')
+					let newQiandao = new bmqd({
+					meeting_name:args.meeting_name,
+					meeting_date:args.meeting_date,
+					meeting_des:args.meeting_des,
+					randomStr:args.randomStr,
+					qiandao:'1',
+					update_time:moment().format('YYYY-MM-DD HH:mm:ss'),
+					update_timeStamp:moment().format('X'),
+					name:docs.name,
+					gonghao:docs.gonghao,
+					danwei:docs.danwei,
+					xiaoyuankahao:docs.xiaoyuankahao
+				})
+				console.log('newQiandao-->',newQiandao)
+				newQiandao.save(function(e,docs){
+					if(e){
+						console.log('----- 手工签到出错 -----')
+						console.error(e)
+						cb(e)
+					}
+					if(docs && docs.length != 0){
+						console.log('----- 手工签到成功 -----')
+						console.log('docs -->',docs)
+						cb(null,docs)
+					}
+				})
+			}
 		}
 	],function(err,result){
 		if(err && result == null){
