@@ -11,6 +11,10 @@ moment.locale('zh-cn')
 //var logger = require('../../log/logConfig').logger
 //var logic = require('../../logic/logic')
 
+let MyServer = "http://116.13.96.53:81",
+	CASserver = "https://auth.szu.edu.cn/cas.aspx/",
+	ReturnURL = "http://116.13.96.53:81";
+
 //用户登录
 router.get('/login',function(req,res){
 	res.render('front/login')
@@ -154,26 +158,35 @@ router.post('/checkUserExist',function(req,res){
 	})
 })
 
-//报名接口
+//报名接口http://116.13.96.53:81/front/baoming/?r=726t3q&b=1
 router.get('/baoming',function(req,res){
 	if(req.query.r && req.query.b == 1){
 		//调用统一身份认证接口，获取报名人信息，并将会议信息返回页面
 		//这里假设获取用户的校园卡号为 000001，姓名为 aaa
-		logic.getMeetingDetail(req.query.r,function(error,result){
-			if(error){
-				console.log('----- baoming router error -----')
-				return res.json({'errCode':-1,'errMsg':'数据库出错！'})
-			}
-			if(result == null){
-				console.log('----- baoming router result null -----')
-				return res.json({'errCode':-1,'errMsg':'没有该会议信息！'})
-			}
-			if(result){
-				//这里到时再增加一个判断，获取用户信息后直接查询是否已经报名，如果是，直接跳转到已报名页面并列出会议详情
-				console.log('----- baoming router -----')
-				return res.render('front/baoming',{'xiaoyuankahao':'000001','name':'aaa','result':result})
-			}
-		})
+		let ReturnURL = req.headers.host + req.url
+		console.log('current url-->',ReturnURL)
+		if(!req.session.user){//没有用户信息，进行验证
+			let url = CASserver + 'login?service=' + ReturnURL
+			console.log('check url -->',url)
+			res.redirect(url)
+		}
+		else{
+			logic.getMeetingDetail(req.query.r,function(error,result){
+				if(error){
+					console.log('----- baoming router error -----')
+					return res.json({'errCode':-1,'errMsg':'数据库出错！'})
+				}
+				if(result == null){
+					console.log('----- baoming router result null -----')
+					return res.json({'errCode':-1,'errMsg':'没有该会议信息！'})
+				}
+				if(result){
+					//这里到时再增加一个判断，获取用户信息后直接查询是否已经报名，如果是，直接跳转到已报名页面并列出会议详情
+					console.log('----- baoming router -----')
+					return res.render('front/baoming',{'xiaoyuankahao':'000001','name':'aaa','result':result})
+				}
+			})
+		}
 	}else{
 		//return res.json({'errCode':-1,'errMsg':'链接有误！'})
 	}
