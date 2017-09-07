@@ -280,6 +280,7 @@ exports.sgqd = function(args,callback){
 					console.log('----- 没签到记录 -----')
 					let temp_date = args.meeting_date
 						temp_date = temp_date.substring(0,10)
+					console.log('temp_date -->',temp_date)
 					let newQiandao = new bmqd({
 						meeting_name:args.meeting_name,
 						meeting_date:args.meeting_date,
