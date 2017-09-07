@@ -6,9 +6,9 @@
 const mongoose = require('mongoose')
 mongoose.Promise = global.Promise;
 //服务器上
-//const DB_URL = 'mongodb://formeetinguse:youtrytry@localhost:27017/meeting_system'
+const DB_URL = 'mongodb://forkaoqinuse:youtrytry@localhost:27017/kaoqin'
 //本地
-const DB_URL = 'mongodb://localhost:27017/kaoqin'
+//const DB_URL = 'mongodb://localhost:27017/kaoqin'
 mongoose.connect(DB_URL,{useMongoClient:true})
 
 /**

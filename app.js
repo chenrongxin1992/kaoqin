@@ -35,6 +35,7 @@ app.use(session({
 }));
 app.use(function(req,res,next){ 
     res.locals.user = req.session.user;   // 从session 获取 user对象
+    res.locals.student = req.session.student
     /*var error = req.session.error;   //获取错误信息
     delete req.session.error;
     res.locals.message = "";   // 展示的信息 message

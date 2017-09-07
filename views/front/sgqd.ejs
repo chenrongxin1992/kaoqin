@@ -188,6 +188,13 @@
           </div>
 
           <div class="form-group">
+            <label for="meeting_place" class="col-lg-5 col-md-5 col-sm-5 col-xs-12 control-label">会议地点</label>
+            <div class="col-lg-5 col-md-5 col-sm-5 col-xs-12 meeting_info" id="meeting_place">
+              暂无
+            </div>
+          </div>
+
+          <div class="form-group">
             <label for="meeting_des" class="col-lg-5 col-md-5 col-sm-5 col-xs-12 control-label">会议详情</label>
             <div class="col-lg-5 col-md-5 col-sm-5 col-xs-12 meeting_info" id="meeting_des">
               暂无
@@ -195,7 +202,7 @@
           </div>
 
           <div class="form-group">
-            <label for="people_no" class="col-lg-5 col-md-5 col-sm-5 col-xs-12 control-label">学号或工号</label>
+            <label for="people_no" class="col-lg-5 col-md-5 col-sm-5 col-xs-12 control-label">校园卡号</label>
             <div class="col-lg-5 col-md-5 col-sm-5 col-xs-12 meeting_info" id="people_noo">
               <input type="text" class="form-control" id="people_no" placeholder="请输入学号或工号" name="people_no">
             </div>
@@ -276,6 +283,7 @@
           $("#randomStr option").remove()
           $("#meeting_date_time").empty()
           $("#meeting_des").empty()
+          $("#meeting_place").empty()
 
           for(let i=0; i<temp_result.length; i++){
             if(temp_meetingName == temp_result[i].meeting_name){
@@ -286,11 +294,13 @@
               $("#randomStr").append("<option>"+temp_result[i].randomStr+"</option>");
               $("#meeting_date_time").append("<p>"+temp_result[i].meeting_date + '  ' + temp_result[i].zhouji + '  ' +temp_result[i].meeting_time+"</p>");
               $("#meeting_des").append("<p>"+temp_result[i].meeting_des + "</p>");
+              $("#meeting_place").append("<p>"+temp_result[i].meeting_place + "</p>");
             }
           }
           if(temp_meetingName == 'select'){
               $("#meeting_date_time").append("<p>"+'暂无信息'+"</p>");
               $("#meeting_des").append("<p>"+'暂无信息' + "</p>");
+              $("#meeting_place").append("<p>"+'暂无信息' + "</p>");
               $('#code').empty()
           }
           $("#randomStr").selectpicker("refresh")

@@ -120,6 +120,12 @@
             </div>
           </div>
           <div class="form-group">
+            <label for="meeting_place" class="col-lg-3 col-md-3 col-sm-3 col-xs-12 control-label">会议地点</label>
+            <div class="col-lg-7 col-md-7 col-sm-7 col-xs-12">
+              <input type="text" class="form-control" id="meeting_place" placeholder="请输入会议地点" name="meeting_place">
+            </div>
+          </div>
+          <div class="form-group">
             <label for="meeting_des" class="col-lg-3 col-md-3 col-sm-3 col-xs-12 control-label">会议描述</label>
             <div class="col-lg-7 col-md-7 col-sm-7 col-xs-12">
               <textarea class="form-control" rows="3" id="meeting_des" placeholder="请描述会议" name="meeting_des"></textarea>
@@ -262,19 +268,21 @@
                                 message: '会议描述不能为空!'
                             }
                         }
-                    }/*,
-                    meeting_date: {
+                    },
+                    meeting_place: {
+                      message: '会议地点验证失败',
                         validators: {
                             notEmpty: {
-                                message: '会议日期不能为空!'
+                                message: '会议地点不能为空!'
                             }
                         }
-                    }*/
+                    }
                 }
           }).on('success.form.bv', function(e) {
             console.log(e)
             e.preventDefault();
             let meeting_name = $('#meeting_name').val(),
+                meeting_place = $('#meeting_place').val(),
                 meeting_des = $('#meeting_des').val(),
                 meeting_date = $('#datetimepicker2').val(),
                 meeting_time = $('#first_hour option:selected').val() + ':' + $('#first_minute option:selected').val() + '-' + $('#second_hour option:selected').val() + ':' + $('#second_minute option:selected').val()
@@ -290,6 +298,7 @@
                 meeting_des:meeting_des,
                 meeting_date:meeting_date,
                 meeting_time:meeting_time,
+                meeting_place:meeting_place
               },
 
               success: function(result){

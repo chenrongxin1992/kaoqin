@@ -17,7 +17,10 @@ var userSchema = new Schema({
     insert_time : {type : String, default : moment().format('YYYY-MM-DD HH:mm:ss') },     //插入时间 
     insert_timeStamp : {type : String,default:moment().format('X')},
     update_time : {type : String, default : moment().format('YYYY-MM-DD HH:mm:ss') },     //更新时间 
-    update_timeStamp : {type : String,default:moment().format('X')}
+    update_timeStamp : {type : String,default:moment().format('X')},
+    gender : {type:String},
+    containerId : {type : String},
+    RankName : {type :String}//卡类别
 })
 
 module.exports = mongoose.model('user',userSchema);

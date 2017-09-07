@@ -16,7 +16,8 @@ var createSchema = new Schema({
     apply_time : {type : String, default : moment().format('YYYY-MM-DD HH:mm:ss') },     //申请时间 
     apply_timeStamp : {type : String,default:moment().format('X')},
     randomStr : {type:String},
-    zhouji : {type : String }
+    zhouji : {type : String },
+    meeting_place : {type:String}
 })
 
 module.exports = mongoose.model('create',createSchema);

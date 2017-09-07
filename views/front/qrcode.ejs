@@ -191,6 +191,13 @@
           </div>
 
           <div class="form-group">
+            <label for="meeting_place" class="col-lg-3 col-md-3 col-sm-3 col-xs-12 control-label">会议地点</label>
+            <div class="col-lg-7 col-md-7 col-sm-7 col-xs-12 meeting_info" id="meeting_place">
+              暂无
+            </div>
+          </div>
+
+          <div class="form-group">
             <label for="meeting_des" class="col-lg-3 col-md-3 col-sm-3 col-xs-12 control-label">会议详情</label>
             <div class="col-lg-7 col-md-7 col-sm-7 col-xs-12 meeting_info" id="meeting_des">
               暂无
@@ -297,6 +304,7 @@
           $("#randomStr option").remove()
           $("#meeting_date_time").empty()
           $("#meeting_des").empty()
+          $("#meeting_place").empty()
           $("#code").empty()
 
           for(let i=0; i<temp_result.length; i++){
@@ -308,11 +316,13 @@
               $("#randomStr").append("<option>"+temp_result[i].randomStr+"</option>");
               $("#meeting_date_time").append("<p>"+temp_result[i].meeting_date + '  ' + temp_result[i].zhouji + '  ' +temp_result[i].meeting_time+"</p>");
               $("#meeting_des").append("<p>"+temp_result[i].meeting_des + "</p>");
+              $("#meeting_place").append("<p>"+temp_result[i].meeting_place + "</p>");
             }
           }
           if(temp_meetingName == 'select'){
               $("#meeting_date_time").append("<p>"+'暂无信息'+"</p>");
               $("#meeting_des").append("<p>"+'暂无信息' + "</p>");
+              $("#meeting_place").append("<p>"+'暂无信息' + "</p>");
               $('#code').empty()
           }
           $("#randomStr").selectpicker("refresh")
@@ -342,7 +352,7 @@
         let randomStr = $('#randomStr option:selected').val()
         console.log('点击报名按钮，会议的随机码是-->',randomStr)
         //116.13.96.53:81
-        let baomingUrl = 'http://116.13.96.53:81/front/baoming/?r=' + randomStr + '&b=1'
+        let baomingUrl = 'http://qiandao.szu.edu.cn:81/front/baoming/?r=' + randomStr + '&b=1'
         console.log('点击报名按钮，报名链接是-->',baomingUrl)
         $("#code").qrcode({ 
             background : '#F0F8FF',
@@ -393,7 +403,7 @@
           console.log('第一次获取的会议二维码是-->',randomStr)
 
           //116.13.96.53:81,签到链接
-          let qiandaoUrl = 'http://116.13.96.53:81/front/qiandao/?r=' + randomStr + '&q=1' + '&d=1' + '&t=' + timeStamp
+          let qiandaoUrl = 'http://qiandao.szu.edu.cn:81/front/qiandaodongtai/?r=' + randomStr + '&q=1' + '&d=1' + '&t=' + timeStamp
           console.log('第一次的签到链接-->',qiandaoUrl)
 
           $("#code").empty()
@@ -404,14 +414,14 @@
                 height:300, //高度 
                 text: qiandaoUrl //任意内容 
           });
-          dongtai = setInterval(createQrcode,5000)
+          dongtai = setInterval(createQrcode,50000)
 
         }else{
           console.log('开关关闭，静态二维码')
           //获取当前会议唯一码
           let randomStr = $('#randomStr option:selected').val()
           console.log('获取的会议随机码是-->',randomStr)
-          let qiandaoUrl = 'http://116.13.96.53:81/front/qiandao/?r=' + randomStr + '&q=1' + '&d=0'
+          let qiandaoUrl = 'http://qiandao.szu.edu.cn:81/front/qiandao/?r=' + randomStr + '&q=1' + '&d=0'
           console.log('检查签到链接-->',qiandaoUrl)
           $("#code").empty()
           $("#code").qrcode({ 
@@ -442,7 +452,7 @@
               console.log('第一次获取的会议二维码是-->',randomStr)
 
               //116.13.96.53:81,签到链接
-              let qiandaoUrl = 'http://116.13.96.53:81/front/qiandao/?r=' + randomStr + '&q=1' + '&d=1' + '&t=' + timeStamp
+              let qiandaoUrl = 'http://qiandao.szu.edu.cn:81/front/qiandaodongtai/?r=' + randomStr + '&q=1' + '&d=1' + '&t=' + timeStamp
               console.log('第一次的签到链接-->',qiandaoUrl)
 
               $("#code").empty()
@@ -453,14 +463,14 @@
                     height:300, //高度 
                     text: qiandaoUrl //任意内容 
               });
-              dongtai = setInterval(createQrcode,5000)
+              dongtai = setInterval(createQrcode,50000)
             }else{
               console.log('----- 手动关闭开关，清除定时器 -----')
               clearInterval(dongtai)
               //获取当前会议唯一码
               let randomStr = $('#randomStr option:selected').val()
               console.log('check randomStr after click-->',randomStr)
-              let qiandaoUrl = 'http://116.13.96.53:81/front/qiandao/?r=' + randomStr + '&q=1' + '&d=0'
+              let qiandaoUrl = 'http://qiandao.szu.edu.cn:81/front/qiandao/?r=' + randomStr + '&q=1' + '&d=0'
               console.log('关闭开关后的签到链接-->',qiandaoUrl)
               $("#code").empty()
               $("#code").qrcode({ 
@@ -484,7 +494,7 @@
       let timeStamp = moment().format('X')
       console.log('当前时间戳-->',timeStamp)
       //116.13.96.53:81,签到链接
-      let qiandaoUrl = 'http://116.13.96.53:81/front/qiandao/?r=' + randomStr + '&q=1' + '&d=1' + '&t=' + timeStamp
+      let qiandaoUrl = 'http://qiandao.szu.edu.cn:81/front/qiandaodongtai/?r=' + randomStr + '&q=1' + '&d=1' + '&t=' + timeStamp
       console.log('签到链接-->',qiandaoUrl)
       $("#code").empty()
       $("#code").qrcode({ 
