@@ -5,7 +5,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <!-- 上述3个meta标签*必须*放在最前面，任何其他内容都*必须*跟随其后！ -->
-    <title>报名成功</title>
+    <title>没有会议信息</title>
 
     <!-- Bootstrap -->
     <link rel="stylesheet" href="http://cdn.bootcss.com/bootstrap/3.3.2/css/bootstrap.min.css">
@@ -51,14 +51,12 @@
       @media (min-width: 1170px) {
         .user{
           height: 70px;
-          background-color: #F0F8FF;
           line-height: 70px;
           vertical-align: bottom;
           padding-top: 13px;
         }
       }
       .user{
-        background-color: #F0F8FF;
         vertical-align: bottom;
       }
       hr{
@@ -143,8 +141,8 @@
       .bootstrap-select > .dropdown-toggle {
         width: 100%;
       }
-     /* @media (max-width: 768px) {
-        .glyphicon ,.glyphicon-ok{
+      @media (max-width: 768px) {
+        .glyphicon ,.glyphicon-remove{
           color:#7CCD7C;
           font-size:210px;
           display: block;
@@ -152,108 +150,52 @@
         }
       }
       @media (min-width: 768px) {
-        .glyphicon, .glyphicon-ok{
+        .glyphicon, .glyphicon-remove{
           color:#7CCD7C;
           font-size:325px;
           display: block;
           text-align: center;
         }
-      }*/
-      .glyphicon-ok{
-        color:#7CCD7C;
+      }
+      .note_1{
+        margin-top: 10px;
       }
     </style>
   </head>
   <body>
     <div class="container">
-      <div class="row">
+      <!-- <div class="row">
         <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
           <img src="/images/szucsselogo.png" class="img-responsive" alt="">  
         </div>
+      </div> -->
+
+      <div class="row">
+        <div class="col-lg-9 col-md-9 col-sm-12 col-xs-12">
+          <img src="../images/szucsselogo.png" class="img-responsive" alt="">  
+        </div>
+        <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12 user">
+          <span class="pull-right user"> <a href="/front/overview">首页</a> | 当前用户:<span style="color: red"> <%=user.name%></span>  | <a href="/front/logout">退出</a></span>
+        </div>
       </div>
           
       <div class="row">
         <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-          <p style="text-align: center;">报名成功！<span class="glyphicon glyphicon-ok"  ></span></p>
+          <p style="text-align: center;">一周内没有将要举办的会议！</p>
         </div>
       </div>
-
-     <!--  <div class="row">
-        <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-          <span class="glyphicon glyphicon-ok"  ></span>
-        </div>
-      </div> -->
 
       <div class="row">
         <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-          <p style="text-align: center;">会议信息如下</span></p>
+          <span class="glyphicon glyphicon-remove" ></span>
         </div>
       </div>
 
-      <!-- <div class="row">
-        <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-          <span class="glyphicon glyphicon-ok"></span>
+      <div class="row ">
+        <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 note_1">
+          <span class="note">备注：此处只显示最近一周将举行的会议</span>
         </div>
-      </div> -->
-
-      <div class="row uniform">
-        <form class="form-horizontal">
-          <div class="form-group">
-            <label for="meeting_name" class="col-lg-5 col-md-5 col-sm-5 col-xs-12 control-label">会议名称</label>
-            <div class="col-lg-5 col-md-5 col-sm-5 col-xs-12">
-              <input type="text" class="form-control" id="meeting_name" name="meeting_name" readonly="readonly">
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label for="meeting_place" class="col-lg-5 col-md-5 col-sm-5 col-xs-12 control-label">会议地点</label>
-            <div class="col-lg-5 col-md-5 col-sm-5 col-xs-12">
-              <input type="text" class="form-control" id="meeting_place" name="meeting_place" readonly="readonly">
-            </div>
-          </div>
-          
-          <div class="form-group" style="height: 0;overflow: hidden;">
-            <label for="randomStr" class="col-lg-5 col-md-5 col-sm-5 col-xs-12 control-label">会议编号</label>
-            <div class="col-lg-5 col-md-5 col-sm-5 col-xs-12 meeting_info" id="meeting_date_time">
-              <input type="text" class="form-control" id="randomStr" name="randomStr" readonly="readonly">
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label for="meeting_date" class="col-lg-5 col-md-5 col-sm-5 col-xs-12 control-label">会议时间</label>
-            <div class="col-lg-5 col-md-5 col-sm-5 col-xs-12 meeting_info" id="meeting_date_time">
-              <input type="text" class="form-control" id="meeting_date" name="meeting_date" readonly="readonly">
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label for="meeting_des" class="col-lg-5 col-md-5 col-sm-5 col-xs-12 control-label">会议详情</label>
-            <div class="col-lg-5 col-md-5 col-sm-5 col-xs-12 meeting_info" id="">
-              <textarea class="form-control" rows="3" id="meeting_des"  name="meeting_des" readonly="readonly"></textarea>
-              <!-- <input type="text" class="form-control" id="meeting_des" name="meeting_des" readonly="readonly"> -->
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label for="people_no" class="col-lg-5 col-md-5 col-sm-5 col-xs-12 control-label">校园卡号</label>
-            <div class="col-lg-5 col-md-5 col-sm-5 col-xs-12 meeting_info" id="people_noo">
-              <input type="text" class="form-control" id="people_no" name="people_no" readonly="readonly">
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label for="name" class="col-lg-5 col-md-5 col-sm-5 col-xs-12 control-label">姓名</label>
-            <div class="col-lg-5 col-md-5 col-sm-5 col-xs-12 meeting_info" id="people_noo">
-              <input type="text" class="form-control" id="name" name="name" readonly="readonly">
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label for="name" class="col-lg-5 col-md-5 col-sm-5 col-xs-12 control-label">提示</label>
-            <div class="col-lg-5 col-md-5 col-sm-5 col-xs-12 meeting_info" id="people_noo">
-              <span style="color: red">请于规定时间准时参加会议。</span>
-            </div>
-          </div>
+      </div>
 
       <div class="row">
         <hr>
@@ -296,31 +238,64 @@
     <script type="text/javascript" src='/javascripts/jquery.qrcode.min.js' ></script>
     <script type="text/javascript" src='/javascripts/bootstrap-switch.min.js' ></script>
     <script type="text/javascript">
-    function br2nl(txt){
-        var re=/(<br\s\/>|<br>|<BR>|<BR\/>)/g;
-        var s=txt.replace(re,"\n");
-        return s;                                  
-    }
-    // $.fn.bootstrapSwitch.defaults.size = 'small';
-    // $.fn.bootstrapSwitch.defaults.onColor = 'success';
-    // jQuery.browser={};(function(){jQuery.browser.msie=false; 
-    // jQuery.browser.version=0;if(navigator.userAgent.match(/MSIE ([0-9]+)./)){ jQuery.browser.msie=true;jQuery.browser.version=RegExp.$1;}})();
+    var dongtai
+    $.fn.bootstrapSwitch.defaults.size = 'small';
+    $.fn.bootstrapSwitch.defaults.onColor = 'success';
+    jQuery.browser={};(function(){jQuery.browser.msie=false; 
+    jQuery.browser.version=0;if(navigator.userAgent.match(/MSIE ([0-9]+)./)){ jQuery.browser.msie=true;jQuery.browser.version=RegExp.$1;}})();
        $(function() {
 
-         //后台传递数据对form表单赋值
-        let temp_result = '<%- JSON.stringify(result) %>'
-        temp_result = temp_result.replace(/\n/g,'<br />')
-            temp_result = JSON.parse(temp_result);
-        console.log(temp_result)
-        $('#meeting_name').val(temp_result.meeting_name)
-        $('#meeting_place').val(temp_result.meeting_place)
-        $('#randomStr').val(temp_result.randomStr)
-        let date = temp_result.meeting_date + ' ' + moment(temp_result.meeting_date,'YYYY-MM-DD').format('dddd') + ' ' + temp_result.meeting_time
-        $('#meeting_date').val(date)
-        $('#meeting_des').val(br2nl((temp_result.meeting_des)))
-        $('#people_no').val('<%- xiaoyuankahao %>')
-        $('#name').val('<%- name %>')
+        moment.locale('zh-cn')
+        //后台传递数据对form表单赋值
     
+
+        $('#now-submit').on('click',function(){
+
+            let randomStr = $('#randomStr').val(),
+                people_no = $('#people_no').val()
+            console.log('check args-->',randomStr,people_no)
+
+            //提交
+            $.ajax({
+              url: '/front/baoming', 
+              async: true,
+              dataType: 'json',
+              type: 'POST',
+              data: {
+                randomStr:randomStr,
+                people_no:people_no
+              },
+
+              success: function(result){
+                console.log('扫码报名 success')
+                console.log(result)
+                if(result.errCode == 0){
+                  //弹出模态框
+                  $('.modal-msg').modal('show')
+                  $('.modal-body').text('报名成功！')
+                  //$('.modal-msg').attr('randomStr',result.result.randomStr);
+                  //$('.modal-msg').attr('apply_name',apply_name);
+                }
+                if(result.errCode == -1){
+                  //弹出模态框
+                  $('.modal-msg').modal('show')
+                  $('.modal-body').text(result.errMsg)
+                }
+              },
+              error: function(e){
+                console.log("error");
+                console.log(e)
+                console.error(e.message)
+                $('.modal-msg').modal('show')
+                $('.modal-body').text('报名失败！')
+              },
+          });
+        })
+        
+        //点击模态框确认按钮
+        $('#result-sure').on('click',function(){
+          //window.location.reload()
+        })
       })
 
     </script>

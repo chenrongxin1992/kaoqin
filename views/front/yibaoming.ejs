@@ -191,7 +191,7 @@
             </div>
           </div>
           
-          <div class="form-group" style="display: none;">
+          <div class="form-group" style="height: 0;overflow: hidden;">
             <label for="randomStr" class="col-lg-5 col-md-5 col-sm-5 col-xs-12 control-label">会议编号</label>
             <div class="col-lg-5 col-md-5 col-sm-5 col-xs-12 meeting_info" id="meeting_date_time">
               <input type="text" class="form-control" id="randomStr" name="randomStr" readonly="readonly">
@@ -290,6 +290,11 @@
     <script type="text/javascript" src='/javascripts/jquery.qrcode.min.js' ></script>
     <script type="text/javascript" src='/javascripts/bootstrap-switch.min.js' ></script>
     <script type="text/javascript">
+    function br2nl(txt){
+        var re=/(<br\s\/>|<br>|<BR>|<BR\/>)/g;
+        var s=txt.replace(re,"\n");
+        return s;                                  
+    }
     var dongtai
     $.fn.bootstrapSwitch.defaults.size = 'small';
     $.fn.bootstrapSwitch.defaults.onColor = 'success';
@@ -300,6 +305,7 @@
         moment.locale('zh-cn')
         //后台传递数据对form表单赋值
         let temp_result = '<%- JSON.stringify(result) %>'
+        temp_result = temp_result.replace(/\n/g,'<br />')
             temp_result = JSON.parse(temp_result);
         console.log(temp_result)
         $('#meeting_name').val(temp_result.meeting_name)
@@ -307,7 +313,7 @@
         $('#randomStr').val(temp_result.randomStr)
         let date = temp_result.meeting_date + ' ' + moment(temp_result.meeting_date,'YYYY-MM-DD').format('dddd') + ' ' + temp_result.meeting_time
         $('#meeting_date').val(date)
-        $('#meeting_des').val(temp_result.meeting_des)
+        $('#meeting_des').val(br2nl((temp_result.meeting_des)))
         $('#people_no').val('<%- xiaoyuankahao %>')
         $('#name').val('<%- name %>')
     

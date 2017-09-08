@@ -170,7 +170,7 @@
             </div>
           </div>
   
-          <div class="form-group" style="display: none;">
+          <div class="form-group" style="height: 0;overflow: hidden;">
             <label for="randomStr" class="col-lg-5 col-md-5 col-sm-5 col-xs-12 control-label">会议编号</label>
             <div class="col-lg-5 col-md-5 col-sm-5 col-xs-12">
               <select id="randomStr" class="selectpicker" data-hide-disabled="true" data-live-search="false">
@@ -263,6 +263,11 @@
     <script type="text/javascript" src='/javascripts/jquery.qrcode.min.js' ></script>
     <script type="text/javascript" src='/javascripts/bootstrap-switch.min.js' ></script>
     <script type="text/javascript">
+     function br2nl(txt){
+        var re=/(<br\s\/>|<br>|<BR>|<BR\/>)/g;
+        var s=txt.replace(re,"\n");
+        return s;                                  
+    }
     var dongtai
     $.fn.bootstrapSwitch.defaults.size = 'small';
     $.fn.bootstrapSwitch.defaults.onColor = 'success';
@@ -276,6 +281,7 @@
           let temp_meetingName = $('#meeting_name option:selected').val()
           console.log('当前选择会议名-->',temp_meetingName)
           let temp_result = '<%- JSON.stringify(result) %>' //字符串
+              temp_result = temp_result.replace(/\n/g,'<br />')
               temp_result = JSON.parse(temp_result);
           console.log('一周内会议信息-->',temp_result)
 

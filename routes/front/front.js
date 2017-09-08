@@ -95,9 +95,11 @@ router.get('/qrcode',function(req,res){
 		}
 		if(result == null || result.length == 0){
 			//no meeting 
-			return res.json({'errCode':-1,'errMsg':'result is null'})
+			return res.render('front/meiyouhuiyi')
+			//return res.json({'errCode':-1,'errMsg':'result is null'})
 		}
 		//have meetings 
+		console.log('result -- >',result)
 		return res.render('front/qrcode',{'result':result,'name':req.session.user.name})
 	})
 })
@@ -128,7 +130,8 @@ router.get('/sgqd',function(req,res){
 		}
 		if(result == null || result.length == 0){
 			//no meeting 
-			return res.json({'errCode':-1,'errMsg':'result is null'})
+			return res.render('front/meiyouhuiyi')
+			//return res.json({'errCode':-1,'errMsg':'result is null'})
 		}
 		//have meetings 
 		return res.render('front/sgqd',{'result':result,'name':req.session.user.name})

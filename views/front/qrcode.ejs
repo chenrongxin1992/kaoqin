@@ -131,6 +131,9 @@
 
         background-color: #F0F8FF;
       }
+      .note_1{
+        margin-top: 10px;
+      }
       .description{
 
       }
@@ -178,7 +181,7 @@
              </div>
           </div>
   
-          <div class="form-group" style="display: none;">
+          <div class="form-group" style="height: 0;overflow: hidden;">
             <label for="randomStr" class="col-lg-3 col-md-3 col-sm-3 col-xs-12 control-label">会议编号</label>
             <div class="col-lg-7 col-md-7 col-sm-7 col-xs-12">
               <select id="randomStr" class="selectpicker" data-hide-disabled="true" data-live-search="false">
@@ -236,7 +239,7 @@
       </div>
 
       <div class="row ">
-        <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 ">
+        <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 note_1">
           <span class="note">备注：此处只显示最近一周将举行的会议</span>
         </div>
       </div>
@@ -312,7 +315,11 @@
 
           let temp_meetingName = $('#meeting_name option:selected').val()
           console.log('当前选择会议名-->',temp_meetingName)
+
           let temp_result = '<%- JSON.stringify(result) %>' //字符串
+              temp_result = temp_result.replace(/\n/g,'<br />')
+                                      
+          console.log('temp_result-->',temp_result)
               temp_result = JSON.parse(temp_result);
           console.log('一周内会议信息-->',temp_result)
 
@@ -393,7 +400,8 @@
         a_link.href = canvas.toDataURL("image/png");  
 
         $('#gallery').poptrox({
-          usePopupCaption: true
+          usePopupCaption: true,
+          overlayColor: 'black'
         });
         //$('input[name="my-checkbox"]').bootstrapSwitch('toggleDisabled');  // true || false
         return false
