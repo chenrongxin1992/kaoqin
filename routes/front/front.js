@@ -104,6 +104,15 @@ router.get('/qrcode',function(req,res){
 	})
 })
 
+//数据查询页面
+router.get('/chaxun',function(req,res){
+	if(!req.session.user){
+		console.log('----- user not login -----')
+		return res.redirect('/front/login')
+	}
+	
+})
+
 //临时添加用户接口
 router.get('/adduser',function(req,res){
 	logic.adduser(function(error,result){
