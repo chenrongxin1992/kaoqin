@@ -20,7 +20,8 @@ var userSchema = new Schema({
     update_timeStamp : {type : String,default:moment().format('X')},
     gender : {type:String},
     containerId : {type : String},
-    RankName : {type :String}//卡类别
+    RankName : {type :String},//卡类别
+    nianji : {type:String,default:null}
 })
 
 module.exports = mongoose.model('user',userSchema);

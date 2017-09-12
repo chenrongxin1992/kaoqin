@@ -110,7 +110,7 @@ router.get('/chaxun',function(req,res){
 		console.log('----- user not login -----')
 		return res.redirect('/front/login')
 	}
-	
+
 })
 
 //临时添加用户接口
@@ -289,6 +289,7 @@ router.get('/baoming',function(req,res){
 						}
 						console.log('check final result -->',user,eduPersonOrgDN,alias,cn,gender,containerId,RankName)
 						let arg = {}
+							arg.nianji = user.substring(0,4)
 						   	arg.user = user
 						   	arg.eduPersonOrgDN = eduPersonOrgDN
 						   	arg.alias = alias
@@ -406,15 +407,23 @@ router.get('/qiandao',function(req,res){
 					   alias = pipei(body,'alias'),//校园卡号
 					   cn = pipei(body,'cn'),//姓名
 					   gender = pipei(body,'gender'),//性别
-					   containerId = pipei(body,'containerId')//个人信息（包括uid，）
+					   containerId = pipei(body,'containerId'),//个人信息（包括uid，）
+					   RankName = '',
+					   nianji = ''
 					   if(containerId){
 					   	RankName = containerId.substring(18,21)//卡类别 jzg-->教职工
 					   }
 					   else{
 					   	RankName = null
 					   }
+					   if(user){
+					   	nianji = user.substring(0,4)
+					   }else{
+					   	nianji = null
+					   }
 					   console.log('check final result -->',user,eduPersonOrgDN,alias,cn,gender,containerId,RankName)
 					   let arg = {}
+					   	   arg.nianji = nianji
 					   	   arg.user = user
 					   	   arg.eduPersonOrgDN = eduPersonOrgDN
 					   	   arg.alias = alias
@@ -542,15 +551,23 @@ router.get('/qiandaodongtai',function(req,res){
 						   alias = pipei(body,'alias'),//校园卡号
 						   cn = pipei(body,'cn'),//姓名
 						   gender = pipei(body,'gender'),//性别
-						   containerId = pipei(body,'containerId')//个人信息（包括uid，）
+						   containerId = pipei(body,'containerId'),//个人信息（包括uid，）
+						   RankName = '',
+						   nianji = ''
 						   if(containerId){
 						   	  RankName = containerId.substring(18,21)//卡类别 jzg-->教职工
 						   }
 						   else{
 						   	  RankName = null
 						   }
+						   if(user){
+						   	nianji = user.substring(0,4)
+						   }else{
+						   	nianji = null
+						   }
 						   console.log('check final result -->',user,eduPersonOrgDN,alias,cn,gender,containerId,RankName)
 						   let arg = {}
+						       arg.nianji = nianji
 						   	   arg.user = user
 						   	   arg.eduPersonOrgDN = eduPersonOrgDN
 						   	   arg.alias = alias
@@ -633,7 +650,7 @@ router.get('/baomingchenggong',function(req,res){
 //已签到页面
 router.get('/yiqiandao',function(req,res){
 	//获取会议信息
-	console.log(req.session.student)
+	console.log('yiqiandao --> session --> ',req.session.student)
 	let student = req.session.student
 	logic.getMeetingDetail(req.session.student.r,function(error,result){
 		if(error){

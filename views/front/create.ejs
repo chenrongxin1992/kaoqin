@@ -164,6 +164,22 @@
               </select>
             </div>
           </div>
+
+          <div class="form-group">
+            <label for="meeting_type" class="col-lg-3 col-md-3 col-sm-3 col-xs-6 control-label">会议类型</label>
+            <div class="col-lg-2 col-md-2 col-sm-2 col-xs-6">
+              <select id="meeting_type" class="selectpicker" data-hide-disabled="true" data-live-search="false">
+                <option>非年级会议</option><option>年级会议</option>
+              </select>
+            </div>
+            <div class="col-lg-1 col-md-1 col-sm-1 col-xs-6 " style="text-align: center;font-weight: bold;line-height: 33px;">年级</div>
+            <div class="col-lg-1 col-md-1 col-sm-1 col-xs-6" readonly="readonly">
+              <select id="meeting_nianji" class="selectpicker" data-hide-disabled="true" data-live-search="false" disabled="disabled">
+                <option>2017</option><option>2016</option><option>2015</option><option>2014</option>
+              </select>
+            </div>
+          </div>
+
           <div class="form-group">
             <div class="col-lg-offset-3 col-md-offset-3 col-sm-offset-3  col-lg-9 col-md-9 col-sm-9 col-xs-9 ">
               <button type="submit" class="btn btn-success" id="now-submit">确认</button>
@@ -215,11 +231,15 @@
     jQuery.browser={};(function(){jQuery.browser.msie=false; 
     jQuery.browser.version=0;if(navigator.userAgent.match(/MSIE ([0-9]+)./)){ jQuery.browser.msie=true;jQuery.browser.version=RegExp.$1;}})();
        $(function() {
+        'use strict';
+        var newDate = new Date();
+        var t       = newDate.toJSON(); 
         //日期选择
         $('#datetimepicker2').datetimepicker({  
             format: 'YYYY-MM-DD',  
             locale: moment.locale('zh-cn') ,
         });  
+        //$('#datetimepicker2').datetimepicker('setStartDate', '2012-01-01');
 
         //时间选择限制
         $('#first_hour').change(function(){
@@ -229,7 +249,7 @@
           if(parseInt(temp_time,10) == 21){
             $("#second_hour").append("<option>"+21+"</option>");  
           }else{
-            for(let i=parseInt(temp_time,10)+1;i<21;i++){
+            for(let i=parseInt(temp_time,10)+1;i<=21;i++){
               let k = String(i)
               if(k.length < 2)
                 k = '0' + k
@@ -240,7 +260,21 @@
            $("#second_hour").selectpicker("refresh")
        })//change
 
-
+        //年级信息
+        $('#meeting_type').change(function(){
+          let meeting_type = $('#meeting_type').val()
+          console.log('meeting_type -- >',meeting_type)
+          if(meeting_type == '非年级会议'){
+            console.log('非年级会议，不处理')
+            $("#meeting_nianji").attr("disabled","disabled"); 
+          }else{
+            console.log('年级会议，取消年级禁用下拉框')
+            //$("#second_hour option").remove()
+            $("#meeting_nianji").removeAttr("disabled"); 
+            //$("#meeting_nianji").selectpicker("refresh")
+          }
+          $("#meeting_nianji").selectpicker("refresh")
+        })
 
 //表单验证
           $('form').bootstrapValidator({
@@ -284,8 +318,11 @@
                 meeting_place = $('#meeting_place').val(),
                 meeting_des = $('#meeting_des').val(),
                 meeting_date = $('#datetimepicker2').val(),
-                meeting_time = $('#first_hour option:selected').val() + ':' + $('#first_minute option:selected').val() + '-' + $('#second_hour option:selected').val() + ':' + $('#second_minute option:selected').val()
-            console.log('check args-->',meeting_name,meeting_des,meeting_date,meeting_time)
+                meeting_time = $('#first_hour option:selected').val() + ':' + $('#first_minute option:selected').val() + '-' + $('#second_hour option:selected').val() + ':' + $('#second_minute option:selected').val(),
+                meeting_type = $('#meeting_type').val(),
+                meeting_nianji = $('#meeting_nianji').val()
+
+            console.log('check args-->',meeting_name,meeting_des,meeting_date,meeting_time,meeting_type,meeting_nianji)
             //提交
             $.ajax({
               url: '/front/create', 
@@ -297,7 +334,9 @@
                 meeting_des:meeting_des,
                 meeting_date:meeting_date,
                 meeting_time:meeting_time,
-                meeting_place:meeting_place
+                meeting_place:meeting_place,
+                meeting_type:meeting_type,
+                meeting_nianji:meeting_nianji
               },
 
               success: function(result){

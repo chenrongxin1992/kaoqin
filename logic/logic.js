@@ -118,10 +118,21 @@ exports.createMeeting = function(args,callback){
 	let temp_timeStamp = moment().format('X'),
 		temp_num = temp_timeStamp.substring(7),
 		temp_randomStr = random_str(),
-		randomStr = temp_num + temp_randomStr
+		randomStr = temp_num + temp_randomStr,
+		meeting_type = '',
+		meeting_nianji = ''
 	console.log('check randomStr-->',randomStr)
 
+	//(b == 5) ? a="true" : a="false";
+	if(args.meeting_type == '非年级会议') {
+		meeting_type = '0'
+	}else{
+		meeting_type = '1'
+	}
+
 	let createMeeting = new meeting({
+		meeting_type : meeting_type,
+		meeting_nianji : args.meeting_nianji,
 		meeting_place : args.meeting_place,
 		meeting_name : args.meeting_name,
 		meeting_des : args.meeting_des,
@@ -497,6 +508,7 @@ exports.getMeetingDetail_2 = function(args,callback){
 				cb(null,null)
 			}else{
 				let addUser = new user({
+					nianji : args.nianji,
 					gonghao : args.user,
 					danwei : args.eduPersonOrgDN,
 					xiaoyuankahao : args.alias,
@@ -614,6 +626,7 @@ exports.getMeetingDetail_1 = function(args,callback){
 				cb(null,null)
 			}else{
 				let addUser = new user({
+					nianji : args.nianji,
 					gonghao : args.user,
 					danwei : args.eduPersonOrgDN,
 					xiaoyuankahao : args.alias,
@@ -678,6 +691,13 @@ exports.getMeetingDetail_1 = function(args,callback){
 						if(doc){
 							console.log('----- 会议存在 -----')
 							console.log(doc)
+							// if(doc.meeting_type == '0'){
+							// 	doc.meeting_type = '非年级会议'
+							// 	doc.meeting_nianji = '暂无'
+							// }else{
+							// 	doc.meeting_type = '年级会议'
+								
+							// }
 							return cb(null,doc)
 						}
 					})
@@ -772,6 +792,8 @@ exports.baoming = function(args,callback){
 					console.log('----- 没有报名信息 -----')
 					//新插入
 					let baomingxinxi = new bmqd({
+						meeting_nianji:info.meeting.meeting_nianji,
+						meeting_type:info.meeting.meeting_type,
 						meeting_name:info.meeting.meeting_name,
 						meeting_place:info.meeting.meeting_place,
 						meeting_des:info.meeting.meeting_des,
@@ -888,6 +910,8 @@ exports.qiandao = function(args,callback){
 					console.log('----- 没有记录，直接插入新纪录 -----')
 					//新插入
 					let qiandaoxinxi = new bmqd({
+						meeting_nianji:info.meeting.meeting_nianji,
+						meeting_type:info.meeting.meeting_type,
 						meeting_name:info.meeting.meeting_name,
 						meeting_place:info.meeting.meeting_place,
 						meeting_des:info.meeting.meeting_des,

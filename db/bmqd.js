@@ -23,7 +23,9 @@ var bmqdSchema = new Schema({
     gonghao:{type:String},
     danwei:{type:String},
     xiaoyuankahao:{type:String},
-    meeting_place:{type:String}
+    meeting_place:{type:String},
+    meeting_type:{type:String,default:'0'},
+    meeting_nianji:{type:String}
 })
 
 module.exports = mongoose.model('bmqd',bmqdSchema);

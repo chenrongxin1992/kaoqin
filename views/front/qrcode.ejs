@@ -114,8 +114,16 @@
         .uniform{
           padding: 0 15px;
         }
+        .nianji{
+          font-weight: bold;
+          line-height: 33px;
+        }
       }
       @media (min-width: 768px) {
+        .nianji{
+          text-align: center;
+           font-weight: bold;line-height: 33px;
+        }
         .meeting_date{
           text-align: right;
         }
@@ -212,6 +220,17 @@
           </div>
 
           <div class="form-group">
+            <label for="meeting_type" class="col-lg-3 col-md-3 col-sm-3 col-xs-6 control-label">会议类型</label>
+            <div class="col-lg-2 col-md-2 col-sm-2 col-xs-6 meeting_info" id="meeting_type">
+              暂无
+            </div>
+            <div class="col-lg-1 col-md-1 col-sm-1 col-xs-6 meeting_info nianji" >年级</div>
+            <div class="col-lg-1 col-md-1 col-sm-1 col-xs-6 meeting_info" id="meeting_nianji">
+              暂无
+            </div>
+          </div>
+
+          <div class="form-group">
             <label for="dynamic_code" class="col-lg-3 col-md-3 col-sm-3 col-xs-5 control-label">动态二维码</label>
             <div class="col-lg-7 col-md-7 col-sm-7 col-xs-7" id="meeting_des">
               <div class="switch">
@@ -293,12 +312,13 @@
     jQuery.browser={};(function(){jQuery.browser.msie=false; 
     jQuery.browser.version=0;if(navigator.userAgent.match(/MSIE ([0-9]+)./)){ jQuery.browser.msie=true;jQuery.browser.version=RegExp.$1;}})();
        $(function() {
-
+        'use strict';
         //初始化开关
         $("[name='my-checkbox']").bootstrapSwitch();
 
         //时间选择限制
         $('#meeting_name').change(function(){
+          'use strict';
           // 清除定时器
           clearInterval(dongtai)
 
@@ -326,12 +346,15 @@
           $("#randomStr option").remove()
           $("#meeting_date_time").empty()
           $("#meeting_des").empty()
+          $("#meeting_type").empty()
+          $("#meeting_nianji").empty()
           $("#meeting_place").empty()
           $("#code").empty()
           $('#image').empty()
           $(".poptrox-overlay").remove()
 
           for(let i=0; i<temp_result.length; i++){
+            'use strict';
             if(temp_meetingName == temp_result[i].meeting_name){
               console.log('----- 找到该会议 -----')
               console.log('该会议随机码-->',temp_result[i].randomStr)
@@ -339,14 +362,23 @@
               console.log('描述-->',temp_result[i].meeting_des)
               $("#randomStr").append("<option>"+temp_result[i].randomStr+"</option>");
               $("#meeting_date_time").append("<p>"+temp_result[i].meeting_date + '  ' + temp_result[i].zhouji + '  ' +temp_result[i].meeting_time+"</p>");
-              $("#meeting_des").append("<p>"+temp_result[i].meeting_des + "</p>");
+              $("#meeting_des").append("<p style='word-break:break-all;'>"+temp_result[i].meeting_des + "</p>");
               $("#meeting_place").append("<p>"+temp_result[i].meeting_place + "</p>");
+              if(temp_result[i].meeting_type == '0'){
+                $("#meeting_type").append("<p>"+'非年级会议' + "</p>");
+                 $("#meeting_nianji").append("<p>"+'暂无' + "</p>");
+              }else{
+                $("#meeting_type").append("<p>"+'年级会议' + "</p>");
+                $("#meeting_nianji").append("<p>"+temp_result[i].meeting_nianji + "</p>");
+              }
             }
           }
           if(temp_meetingName == 'select'){
               $("#meeting_date_time").append("<p>"+'暂无信息'+"</p>");
               $("#meeting_des").append("<p>"+'暂无信息' + "</p>");
               $("#meeting_place").append("<p>"+'暂无信息' + "</p>");
+              $("#meeting_type").append("<p>"+'暂无信息' + "</p>");
+              $("#meeting_nianji").append("<p>"+'暂无信息' + "</p>");
               $('#code').empty()
               $('#image').empty()
               $(".poptrox-overlay").remove()
@@ -356,6 +388,7 @@
 
       //生成报名二维码
       $('#create-baoming').on("click",function(){
+        'use strict';
         // 清除定时器
         clearInterval(dongtai)
 
@@ -409,6 +442,7 @@
 
       //生成签到二维码
       $('#create-qiandao').on("click",function(){
+        'use strict';
         console.log('----- 生成签到二维码 -----')
 
         //$('#create-qiandao').addClass('disabled')
@@ -477,6 +511,7 @@
           dongtai = setInterval(createQrcode,60000)
 
         }else{
+          'use strict';
           console.log('开关关闭，静态二维码')
           //获取当前会议唯一码
           let randomStr = $('#randomStr option:selected').val()
@@ -512,6 +547,7 @@
         //监听开关状态
         $('input[name="my-checkbox"]').on({
           'switchChange.bootstrapSwitch': function(event, state) {
+            'use strict';
             console.log('-----监听开关状态-----')
             console.log('event-->',event)
             console.log('state-->',state)
@@ -555,6 +591,7 @@
 
               dongtai = setInterval(createQrcode,60000)
             }else{
+              'use strict';
               console.log('----- 手动关闭开关，清除定时器 -----')
               clearInterval(dongtai)
               //获取当前会议唯一码
@@ -591,6 +628,7 @@
     
     //生成二维码函数，参数为链接地址
     function createQrcode(){
+      'use strict'
       //获取当前会议唯一码
       let randomStr = $('#randomStr option:selected').val()
       console.log('check randomStr after click-->',randomStr)

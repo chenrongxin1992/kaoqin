@@ -17,7 +17,9 @@ var createSchema = new Schema({
     apply_timeStamp : {type : String,default:moment().format('X')},
     randomStr : {type:String},
     zhouji : {type : String },
-    meeting_place : {type:String}
+    meeting_place : {type:String},
+    meeting_type : {type:String,default:'0'}, //会议类型，年级会议1，非年级会议0（默认0）
+    meeting_nianji : {type:String} 
 })
 
 module.exports = mongoose.model('create',createSchema);
