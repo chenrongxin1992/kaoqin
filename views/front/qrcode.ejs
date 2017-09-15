@@ -471,7 +471,7 @@
         //获取开关状态
         let status = $('input[name="my-checkbox"]').bootstrapSwitch('state')
         if(status){
-          console.log('开关打开着，开始生成动态二维码，3分钟变一次')
+          console.log('开关打开着，开始生成动态二维码，15s变一次')
 
           let timeStamp = moment().format('X')
           console.log('当前时间戳-->',timeStamp)
@@ -481,7 +481,7 @@
           console.log('第一次获取的会议二维码是-->',randomStr)
 
           //116.13.96.53:81,签到链接
-          let qiandaoUrl = 'http://qiandao.szu.edu.cn:81/front/qiandaodongtai/?r=' + randomStr + '&q=1' + '&d=1' + '&t=' + timeStamp
+          let qiandaoUrl = 'http://qiandao.szu.edu.cn:81/front/qiandaodongtai/?r=' + randomStr + '&t=' + timeStamp
           console.log('第一次的签到链接-->',qiandaoUrl)
 
           $("#code").empty()
@@ -508,7 +508,7 @@
           usePopupCaption: true,
         });
 
-          dongtai = setInterval(createQrcode,60000)
+          dongtai = setInterval(createQrcode,15000)
 
         }else{
           'use strict';
@@ -516,7 +516,7 @@
           //获取当前会议唯一码
           let randomStr = $('#randomStr option:selected').val()
           console.log('获取的会议随机码是-->',randomStr)
-          let qiandaoUrl = 'http://qiandao.szu.edu.cn:81/front/qiandao/?r=' + randomStr + '&q=1' + '&d=0'
+          let qiandaoUrl = 'http://qiandao.szu.edu.cn:81/front/qiandao/?r=' + randomStr 
           console.log('检查签到链接-->',qiandaoUrl)
           $("#code").empty()
           $("#iamge").empty()
@@ -562,7 +562,7 @@
               console.log('第一次获取的会议二维码是-->',randomStr)
 
               //116.13.96.53:81,签到链接
-              let qiandaoUrl = 'http://qiandao.szu.edu.cn:81/front/qiandaodongtai/?r=' + randomStr + '&q=1' + '&d=1' + '&t=' + timeStamp
+              let qiandaoUrl = 'http://qiandao.szu.edu.cn:81/front/qiandaodongtai/?r=' + randomStr + '&t=' + timeStamp
               console.log('第一次的签到链接-->',qiandaoUrl)
 
               $("#code").empty()
@@ -589,7 +589,7 @@
                 usePopupCaption: true
               });
 
-              dongtai = setInterval(createQrcode,60000)
+              dongtai = setInterval(createQrcode,15000)
             }else{
               'use strict';
               console.log('----- 手动关闭开关，清除定时器 -----')
@@ -597,7 +597,7 @@
               //获取当前会议唯一码
               let randomStr = $('#randomStr option:selected').val()
               console.log('check randomStr after click-->',randomStr)
-              let qiandaoUrl = 'http://qiandao.szu.edu.cn:81/front/qiandao/?r=' + randomStr + '&q=1' + '&d=0'
+              let qiandaoUrl = 'http://qiandao.szu.edu.cn:81/front/qiandao/?r=' + randomStr 
               console.log('关闭开关后的签到链接-->',qiandaoUrl)
               $("#code").empty()
               $("#image").empty()
@@ -636,7 +636,7 @@
       let timeStamp = moment().format('X')
       console.log('当前时间戳-->',timeStamp)
       //116.13.96.53:81,签到链接
-      let qiandaoUrl = 'http://qiandao.szu.edu.cn:81/front/qiandaodongtai/?r=' + randomStr + '&q=1' + '&d=1' + '&t=' + timeStamp
+      let qiandaoUrl = 'http://qiandao.szu.edu.cn:81/front/qiandaodongtai/?r=' + randomStr + '&t=' + timeStamp
       console.log('签到链接-->',qiandaoUrl)
       $("#code").empty()
       $("#image").empty()

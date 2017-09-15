@@ -548,6 +548,7 @@ exports.getMeetingDetail_2 = function(args,callback){
 				}
 				if(doc){
 					console.log('----- 存在签到信息 -----')
+					console.log('签到信息-->',doc)
 					cb(1,'已经签到！')
 				}
 			})
@@ -596,7 +597,7 @@ exports.getMeetingDetail_2 = function(args,callback){
 	})
 }
 
-//报名时的逻辑
+//报名时的逻辑(get请求到达)
 exports.getMeetingDetail_1 = function(args,callback){
 	console.log('----- getMeetingDetail_1 -----')
 	async.waterfall([
@@ -721,7 +722,7 @@ exports.getMeetingDetail_1 = function(args,callback){
 	})
 }
 
-//报名逻辑
+//报名逻辑(post 请求到达)
 exports.baoming = function(args,callback){
 	console.log('logic baoming')
 	console.log('logic args-->',args)
@@ -840,7 +841,7 @@ exports.baoming = function(args,callback){
 	})
 }
 
-//签到逻辑
+//签到逻辑（post请求到达）
 exports.qiandao = function(args,callback){
 	async.waterfall([
 		//获取用户信息和会议详情
@@ -898,7 +899,7 @@ exports.qiandao = function(args,callback){
 			let search = bmqd.findOne({})
 				search.where('randomStr').equals(args.randomStr)
 				search.where('xiaoyuankahao').equals(args.people_no)
-				//search.where('baoming').gte('0')
+				search.where('baoming').gte('0')
 				//search.where('qiandao').equals('1')
 			search.exec(function(err,doc){
 				if(err){
@@ -923,6 +924,141 @@ exports.qiandao = function(args,callback){
 						gonghao:info.user.gonghao,
 						danwei:info.user.danwei,
 						xiaoyuankahao:args.people_no
+					})
+					qiandaoxinxi.save(function(e,d){
+						if(e){
+							console.log('----- save err -----')
+							console.error(e)
+							cb(e)
+						}else{
+							cb(null,d)	
+						}
+					})
+				}
+				if(doc){
+					console.log('----- 存在记录，判断是否签到过 -----')
+					if(doc.qiandao == 1){
+						console.log('----- 已经签到过 -----')
+						cb(1,'已经签到过')
+					}else{
+						console.log('还没签到，更新签到字段')
+						//更新qiandao字段  PersonModel.update({_id:_id},{$set:{name:'MDragon'}},function(err){});
+						bmqd.update({_id:doc._id},{$set:{qiandao:'1',update_timeStamp:moment().format('X'),update_time:moment().format('YYYY-MM-DD HH:mm:ss')}},function(ee,dd){
+							if(ee){
+								console.log('----- update err -----')
+								cb(ee)
+							}
+							else{
+								console.log('dd-->',dd)
+								cb(null,doc)
+							}
+						})
+					}
+					
+				}
+			})
+		}
+	],function(err,result){
+		if(err && err != 1){
+			console.log('----- async err -----')
+			return callback(err)
+		}
+		if(err == null && result){
+			console.log('----- async qiandao success -----')
+			console.log(result)
+			return callback(null,result)
+		}
+		if(err == 1 && result){
+			console.log('----- async 已经签到 -----')
+			return callback(1,'已经签到！')
+		}
+	})
+}
+
+//动态签到逻辑
+exports.qiandaodongtai = function(args,callback){
+	async.waterfall([
+		//获取用户信息和会议详情
+		function(cb){
+			let search = user.findOne({})
+				search.where('xiaoyuankahao').equals(args.people_no)
+				search.exec(function(err,doc){
+					if(err){
+						console.log('----- search err -----')
+						console.error(err)
+						cb(err)
+					}
+					if(!doc){
+						console.log('----- 用户不存在 -----')
+						cb(1,'用户不存在')
+					}
+					if(doc && doc.length == 0){
+						console.log('----- 用户不存在 -----')
+						cb(1,'用户不存在')
+					}
+					if(doc && doc.length != 0){
+						console.log('----- 用户存在 -----')
+						console.log(doc)
+						cb(null,doc)
+					}
+				})
+		},
+		//获取会议详情
+		function(arg,cb){
+			let search = meeting.findOne({})
+				search.where('randomStr').equals(args.randomStr)
+				search.exec(function(err,doc){
+					if(err){
+						console.log('----- search err -----')
+						console.error(err)
+						cb(err)
+					}
+					if(!doc){
+						console.log('----- 没有该会议信息 -----')
+						cb(1,'没有会议信息')
+					}
+					if(doc){
+						console.log('----- 会议存在 -----')
+						console.log(doc)
+						let info = {}
+							info.user = arg
+							info.meeting = doc
+						cb(null,info)
+					}
+				})
+		},
+		//检查是否存在记录
+		function(info,cb){
+			console.log('check info -->',info)
+			let search = bmqd.findOne({})
+				search.where('randomStr').equals(args.randomStr)
+				search.where('xiaoyuankahao').equals(args.people_no)
+				search.where('baoming').gte('0')
+				//search.where('qiandao').equals('1')
+			search.exec(function(err,doc){
+				if(err){
+					console.log('----- search err -----')
+					console.error(err)
+					cb(err)
+				}
+				if(!doc){
+					console.log('----- 没有记录，直接插入新纪录 -----')
+					//新插入
+					let qiandaoxinxi = new bmqd({
+						meeting_nianji:info.meeting.meeting_nianji,
+						meeting_type:info.meeting.meeting_type,
+						meeting_name:info.meeting.meeting_name,
+						meeting_place:info.meeting.meeting_place,
+						meeting_des:info.meeting.meeting_des,
+						meeting_date:info.meeting.meeting_date,
+						meeting_date_timeStamp:info.meeting.meeting_date_timeStamp,
+						randomStr:args.randomStr,
+						qiandao:1,
+						name:info.user.name,
+						gonghao:info.user.gonghao,
+						danwei:info.user.danwei,
+						xiaoyuankahao:args.people_no,
+						is_dynamic : '1'
 					})
 					qiandaoxinxi.save(function(e,d){
 						if(e){
@@ -971,6 +1107,449 @@ exports.qiandao = function(args,callback){
 			return callback(1,'已经签到！')
 		}
 	})
+}
+
+//会议记录查询
+//get apply for approve 'room_name,meeting_name,exact_meeting_time,meeting_content,meeting_num,apply_name,apply_phone,is_approved'
+exports.applyApprove = function(limit,offset,meeting_type,callback){
+	if(meeting_type == '非年级会议'){
+		console.log('----- 非年级会议 -----')
+		async.waterfall([
+			function(cb){
+				let query = meeting.find({})
+					query.where('meeting_type').equals('0')
+					query.exec(function(err,docs){
+						if(err){
+							console.log('----- search err -----')
+							console.log(err.message)
+							cb(err,null)
+						}
+						if(!docs || docs.length == 0){
+							console.log('----- no result now -----')
+					 		cb(1,1)
+						}
+						if(docs && docs.length !=0){
+							cb(null,docs.length)
+						}
+					})
+			},
+			function(length,cb){
+				console.log('记录总数-->: ',length)
+				limit = parseInt(limit)
+				offset = parseInt(offset)
+				let numSkip = (offset)*limit
+				console.log('skip num is: ',numSkip)
+				let search = meeting.find({},{'meeting_name':1,'meeting_date':1,'meeting_time':1,'meeting_des':1,'meeting_type':1,'meeting_nianji':1,'apply_time':1,'zhouji':1,'_id':1,'randomStr':1})
+					search.where('meeting_type').equals('0')
+					search.sort({'apply_timeStamp':-1})
+					search.limit(limit)
+					search.skip(numSkip)
+					search.exec(function(err,docs){
+						if(err){
+							console.log('----- search err -----')
+							console.log(err.message)
+							cb(err,null)
+						}
+						if(!docs || docs.length == 0){
+							console.log('----- no result now -----')
+							cb(1,1)
+						}
+						if(docs && docs.length !=0){//格式化并将length加入
+							for(let i=0;i<docs.length;i++){
+								//格式化时间戳
+								//docs[i].apply_time = moment(docs[i].apply_time).format('YYYY-MM-DD HH:mm:ss')
+								//console.log('check applytime : ',docs[i].apply_time)
+								if(typeof(docs[i].week_day) == 'undefined'){
+									docs[i].week_day = ''
+								}
+								docs[i].meeting_date = docs[i].meeting_date + ' ' + docs[i].zhouji 
+								docs[i].meeting_nianji = '暂无'
+								docs[i].meeting_type = '非年级会议'
+								console.log(docs[i])
+							}
+							 docs = {
+							 	total : length,
+							 	docs : docs,
+							 	offset : offset
+							 }
+							 cb(null,docs)
+						}
+					})
+			}],function(err,result){
+				if(err && result == 1){
+					console.log('----- async no records -----')
+					callback(err,1)
+				}
+				else if(err && result == null){
+					console.log('----- async err -----')
+					callback(err,null)
+				}
+				else{//(result && result.length != 0)
+					console.log('----- async final result -----')
+					callback(null,result)
+				}
+		})
+	}
+	else{console.log('----- 年级会议 -----')
+		async.waterfall([
+			function(cb){
+				let query = meeting.find({})
+					query.where('meeting_type').equals('1')
+					query.exec(function(err,docs){
+						if(err){
+							console.log('----- search err -----')
+							console.log(err.message)
+							cb(err,null)
+						}
+						if(!docs || docs.length == 0){
+							console.log('----- no result now -----')
+					 		cb(1,1)
+						}
+						if(docs && docs.length !=0){
+							cb(null,docs.length)
+						}
+					})
+			},
+			function(length,cb){
+				console.log('total length: ',length)
+				limit = parseInt(limit)
+				offset = parseInt(offset)
+				let numSkip = (offset)*limit
+				console.log('skip num is: ',numSkip)
+				let search = meeting.find({},{'meeting_name':1,'meeting_date':1,'meeting_time':1,'meeting_des':1,'meeting_type':1,'meeting_nianji':1,'apply_time':1,'zhouji':1,'_id':1,'randomStr':1})
+					search.where('meeting_type').equals('1')
+					search.sort({'apply_timeStamp':-1})
+					search.limit(limit)
+					search.skip(numSkip)
+					search.exec(function(err,docs){
+						if(err){
+							console.log('----- search err -----')
+							console.log(err.message)
+							cb(err,null)
+						}
+						if(!docs || docs.length == 0){
+							console.log('----- no result now -----')
+							cb(1,1)
+						}
+						if(docs && docs.length !=0){//格式化并将length加入
+							for(let i=0;i<docs.length;i++){
+								docs[i].meeting_date = docs[i].meeting_date + ' ' + docs[i].zhouji
+								docs[i].meeting_type = '年级会议'
+								console.log(docs[i])
+							}
+
+							 docs = {
+							 	total : length,
+							 	docs : docs,
+							 	offset : offset
+							 }
+							 cb(null,docs)
+						}
+					})
+			}],function(err,result){
+				if(err && result == 1){
+					console.log('----- async no records -----')
+					callback(err,1)
+				}
+				else if(err && result == null){
+					console.log('----- async err -----')
+					callback(err,null)
+				}
+				else{//(result && result.length != 0)
+					console.log('----- async final result -----')
+
+					callback(null,result)
+				}
+		})
+	}
+}
+
+//签到详情
+exports.getQianDaoDetail = function(limit,offset,randomStr,callback){
+	async.waterfall([
+		function(cb){
+			console.log('查找该会议')
+			let search = meeting.findOne({})
+				search.where('randomStr').equals(randomStr)
+				search.exec(function(err,doc){
+					if(err){
+						console.log('----- search err -----')
+						console.log(err)
+						cb(err)
+					}
+					if(!doc){
+						console.log('----- 没有相应会议 -----')
+						cb(1,'查询不到相应会议')
+					}
+					if(doc){
+						console.log('该会议是 -- >',doc)
+						cb(null,doc)
+					}
+				})
+		},
+		function(arg,cb){
+			console.log('获取签到记录总数')
+			let search = bmqd.find({})
+				search.where('randomStr').equals(randomStr)
+				search.where('qiandao').equals('1')
+				search.exec(function(err,docs){
+					if(err){
+						console.log('----- search err -----')
+						cb(err)
+					}
+					if(!docs){
+						console.log('没有查到结果')
+						cb(1,'没有签到信息')
+					}
+					if(docs){
+						console.log('签到总人数-->',docs.length)
+						cb(null,arg,docs.length)
+					}
+				})
+		},
+		function(arg,length,cb){
+				limit = parseInt(limit)
+				offset = parseInt(offset)
+				let numSkip = (offset)*limit
+				console.log('skip num is: ',numSkip)
+			let search = bmqd.find({})
+				search.where('randomStr').equals(randomStr)
+				search.where('qiandao').equals('1')
+				search.sort({'insert_timeStamp':-1})
+				search.limit(limit)
+				search.skip(numSkip)
+				search.exec(function(err,docs){
+					if(err){
+						console.log('----- 查询签到详情记录出错 -----')
+						console.log(err)
+						cb(err)
+					}
+					if(!docs){
+						console.log('----- 查询不到该会议的签到记录 -----')
+						cb(1,'查询不到该会议的签到记录')
+					}
+					if(docs){
+						let meeting_nianji
+						if(arg.meeting_type == '1'){
+							meeting_nianji = arg.meeting_nianji
+						}else{
+							meeting_nianji = '暂无'
+						}
+						console.log('共有多少人签到 -- > ',docs.length)
+
+						for(let i=0;i<docs.length;i++){
+							docs[i].meeting_date = arg.meeting_date + ' ' + arg.zhouji + ' ' + arg.meeting_time
+							docs[i].meeting_nianji = meeting_nianji
+							if(docs[i].meeting_type == '1'){
+								docs[i].meeting_type = '年级会议'
+							}else{
+								docs[i].meeting_type = '非年级会议'
+							}
+						}
+						docs = {
+								 	total : length,
+								 	docs : docs,
+								 	offset : offset
+								 }
+						cb(null,docs)
+					}
+				})
+		}
+	],function(error,result){
+		if(error && error != 1){
+			console.log('----- async error -----')
+			callback(error)
+		}
+		if(error && error == 1){
+			console.log('----- async error is 1 -----')
+			callback(1,result)
+		}
+		if(!error && result){
+			console.log('----- async final result -----')
+			callback(null,result)
+		}
+	})
+}
+
+exports.applyApproveQuery = function(limit,offset,begin_date,end_date,meeting_type,callback){
+	//如果begin_date为空，取默认值2017-01-01,end_time为空，取当前时间戳
+	if(!begin_date || typeof begin_date == 'undefined'){
+		begin_date = moment('2017-01-01','YYYY-MM-DD').format('X')
+		console.log('begin_date is null')
+		console.log('check begin_date timeStamp',begin_date)
+	}else{
+		console.log('begin_date is not null')
+		begin_date = moment(begin_date,'YYYY-MM-DD').format('X')
+		console.log('check begin_date timeStamp',begin_date)
+	}
+	if(!end_date || typeof end_date == 'undefined'){
+		end_date = moment().format('X')
+		console.log('end_date is null ')
+		console.log('check end_date timeStamp',end_date)
+	}else{
+		end_date = moment(end_date,'YYYY-MM-DD').add(1,'days').format('X')
+		console.log('end_date is not null')
+		console.log('check end_date timeStamp',begin_date)
+	}
+	if(meeting_type == '非年级会议'){
+		console.log('----- 非年级会议 -----')
+		async.waterfall([
+			function(cb){
+				let search = meeting.find({})
+					search.where('meeting_type').equals('0')
+					search.where('meeting_date_timeStamp').gte(begin_date)
+					search.where('meeting_date_timeStamp').lte(end_date)
+					search.exec(function(err,docs){
+						if(err){
+							console.log('----- search err -----')
+							console.log(err.message)
+							cb(err,null)
+						}
+						if(!docs || docs.length == 0){
+							console.log('----- no result now -----')
+							cb(1,1)
+						}
+						if(docs && docs.length !=0){
+							console.log('check apply records that fetch condition: ',docs)
+							cb(null,docs.length)
+						}
+					})
+			},
+			function(length,cb){
+				console.log('数据总数-->',length)
+				limit = parseInt(limit)
+				offset = parseInt(offset)
+				let numSkip = (offset)*limit
+				console.log('skip num is: ',numSkip)
+				let secondSearch = meeting.find({},{'meeting_name':1,'meeting_date':1,'meeting_time':1,'meeting_des':1,'meeting_type':1,'meeting_nianji':1,'apply_time':1,'zhouji':1,'_id':1,'randomStr':1})
+					secondSearch.where('meeting_type').equals('0')
+					secondSearch.where('meeting_date_timeStamp').gte(begin_date)
+					secondSearch.where('meeting_date_timeStamp').lte(end_date)
+					//secondSearch.select()
+					secondSearch.sort({'apply_timeStamp':-1})
+					secondSearch.limit(limit)
+					secondSearch.skip(numSkip)
+					secondSearch.exec(function(err,docs){
+						if(err){
+							console.log('----- search err -----')
+							console.log(err.message)
+							cb(err,null)
+						}
+						if(!docs || docs.length == 0){
+							console.log('----- no result now -----')
+							cb(1,1)
+						}
+						if(docs && docs.length != 0){
+							
+							for(let i=0;i<docs.length;i++){
+								docs[i].meeting_date = docs[i].meeting_date + ' ' + docs[i].zhouji
+								docs[i].meeting_nianji = '暂无'
+								docs[i].meeting_type = '非年级会议'
+							}
+							docs = {
+								 	total : length,
+								 	docs : docs,
+								 	offset : offset
+								 }
+							cb(null,docs)
+						}
+					})
+			}
+		],function(err,result){
+			if(err && result == 1){
+				console.log('----- async no records -----')
+				callback(err,1)
+			}
+			else if(err && result == null){
+				console.log('----- async err -----')
+				callback(err,null)
+			}
+			else{//(result && result.length != 0)
+				console.log('----- async final result -----')
+				callback(null,result)
+			}
+		})
+	}else{
+		console.log('----- 年级会议 -----')
+		async.waterfall([
+			function(cb){
+				let search = meeting.find({})
+					search.where('meeting_type').equals('1')
+					search.where('meeting_date_timeStamp').gte(begin_date)
+					search.where('meeting_date_timeStamp').lte(end_date)
+					//search.where('is_approved').equals('1')
+					search.exec(function(err,docs){
+						if(err){
+							console.log('----- search err -----')
+							console.log(err.message)
+							cb(err,null)
+						}
+						if(!docs || docs.length == 0){
+							console.log('----- no result now -----')
+							cb(1,1)
+						}
+						if(docs && docs.length !=0){
+							console.log('check apply records that fetch condition: ',docs)
+							cb(null,docs.length)
+						}
+					})
+			},
+			function(length,cb){
+				console.log('数据总数--> ',length)
+				limit = parseInt(limit)
+				offset = parseInt(offset)
+				let numSkip = (offset)*limit
+				console.log('skip num is: ',numSkip)
+				let secondSearch = meeting.find({},{'meeting_name':1,'meeting_date':1,'meeting_time':1,'meeting_des':1,'meeting_type':1,'meeting_nianji':1,'apply_time':1,'zhouji':1,'_id':1,'randomStr':1})
+					secondSearch.where('meeting_type').equals('1')
+					secondSearch.where('meeting_date_timeStamp').gte(begin_date)
+					secondSearch.where('meeting_date_timeStamp').lte(end_date)
+					//secondSearch.select()
+					//secondSearch.where('is_approved').equals('1')
+					secondSearch.sort({'apply_timeStamp':-1})
+					secondSearch.limit(limit)
+					secondSearch.skip(numSkip)
+					secondSearch.exec(function(err,docs){
+						if(err){
+							console.log('----- search err -----')
+							console.log(err.message)
+							cb(err,null)
+						}
+						if(!docs || docs.length == 0){
+							console.log('----- no result now -----')
+							cb(1,1)
+						}
+						if(docs && docs.length != 0){
+							
+							for(let i=0;i<docs.length;i++){								
+								docs[i].meeting_date = docs[i].meeting_date + ' ' + docs[i].zhouji
+								docs[i].meeting_type = '年级会议'
+
+							}
+							docs = {
+								 	total : length,
+								 	docs : docs,
+								 	offset : offset
+								 }
+							cb(null,docs)
+						}
+					})
+			}
+		],function(err,result){
+			if(err && result == 1){
+				console.log('----- async no records -----')
+				callback(err,1)
+			}
+			else if(err && result == null){
+				console.log('----- async err -----')
+				callback(err,null)
+			}
+			else{//(result && result.length != 0)
+				console.log('----- async final result -----')
+				callback(null,result)
+			}
+		})
+	}
 }
 
 //添加会议室
@@ -1599,210 +2178,7 @@ exports.applyRecord = function(limit,offset,applier,callback){
 			}
 	})
 }
-//get apply for approve 'room_name,meeting_name,exact_meeting_time,meeting_content,meeting_num,apply_name,apply_phone,is_approved'
-exports.applyApprove = function(limit,offset,username,applier,callback){
-	console.log('session username is -->',username)
-	if(username == 'admin1'){
-		var room_name_arr = ['624小教室--有电脑(68人)','623会议室--无电脑(16-24人)']
-	}
-	else if(username == 'admin2'){
-		var room_name_arr = ['1楼报告厅--无电脑(452人)']
-	}
-	else if(username == 'admin3'){
-		var room_name_arr = ['412会议室--无电脑(11人)','407小教室--有电脑(42人)']
-	}
-	else{
-		var room_name_arr = ['407小教室--有电脑(42人)','624小教室--有电脑(68人)','623会议室--无电脑(16-24人)','1楼报告厅--无电脑(452人)','412会议室--无电脑(11人)','1019会议室--无电脑(20人)','407小教室--无电脑(42人)','938会议室--有电脑(48-60人)']
-	}
-	console.log('check room_name_arr -->',room_name_arr)
 
-	if(!applier){console.log('----- 没有输入申请人 -----')
-		async.waterfall([
-			function(cb){
-				let query = apply.find({})
-					query.where('room_name').in(room_name_arr)
-					query.exec(function(err,docs){
-						if(err){
-							console.log('----- search err -----')
-							console.log(err.message)
-							cb(err,null)
-						}
-						if(!docs || docs.length == 0){
-							console.log('----- no result now -----')
-					 		cb(1,1)
-						}
-						if(docs && docs.length !=0){
-							cb(null,docs.length)
-						}
-					})
-			},
-			function(length,cb){
-				console.log('total length: ',length)
-				limit = parseInt(limit)
-				offset = parseInt(offset)
-				let numSkip = (offset)*limit
-				console.log('skip num is: ',numSkip)
-				let search = apply.find({},{'room_name':1,'meeting_name':1,'meeting_date':1,'exact_meeting_time':1,'meeting_content':1,'apply_time':1,'meeting_num':1,'apply_name':1,'apply_phone':1,'is_approved':1,'_id':1,'is_allowed':1,'week_day':1})
-					search.where('room_name').in(room_name_arr)
-					search.sort({'apply_time':-1})
-					search.limit(limit)
-					search.skip(numSkip)
-					search.exec(function(err,docs){
-						if(err){
-							console.log('----- search err -----')
-							console.log(err.message)
-							cb(err,null)
-						}
-						if(!docs || docs.length == 0){
-							console.log('----- no result now -----')
-							cb(1,1)
-						}
-						if(docs && docs.length !=0){//格式化并将length加入
-							for(let i=0;i<docs.length;i++){
-								//格式化时间戳
-								//docs[i].apply_time = moment(docs[i].apply_time).format('YYYY-MM-DD HH:mm:ss')
-								//console.log('check applytime : ',docs[i].apply_time)
-								if(typeof(docs[i].week_day) == 'undefined'){
-									docs[i].week_day = ''
-								}
-								docs[i].exact_meeting_time = docs[i].meeting_date + ' ' +docs[i].week_day + ' '+ docs[i].exact_meeting_time
-								console.log('docs.is_approved: ',docs[i].is_approved)
-								console.log('docs.is_allowed: ',docs[i].is_allowed)
-								console.log(docs[i])
-								if(docs[i].is_approved == 0 && docs[i].is_allowed == 0){
-									console.log('--- check here -----')
-									docs[i].is_approved = '未审批'
-									console.log(docs[i].is_approved)
-								}
-								else if(docs[i].is_approved == 1 && docs[i].is_allowed == 0){
-									console.log('--- check here -----')
-									docs[i].is_approved = '已批准'
-									console.log(docs[i].is_approved)
-								}
-								else{//docs[i].is_approved == 0 && docs[i].is_allowed == 1
-									console.log('----- check here hrere -----')
-									docs[i].is_approved = '未批准'
-								}
-							}
-
-							 docs = {
-							 	total : length,
-							 	docs : docs,
-							 	offset : offset
-							 }
-							 cb(null,docs)
-						}
-					})
-			}],function(err,result){
-				if(err && result == 1){
-					console.log('----- async no records -----')
-					callback(err,1)
-				}
-				else if(err && result == null){
-					console.log('----- async err -----')
-					callback(err,null)
-				}
-				else{//(result && result.length != 0)
-					console.log('----- async final result -----')
-					callback(null,result)
-				}
-		})
-	}else{console.log('----- 输入了申请人 -----')
-		async.waterfall([
-			function(cb){
-				let query = apply.find({})
-					query.where('room_name').in(room_name_arr)
-					query.where('apply_name').equals(applier)
-					query.exec(function(err,docs){
-						if(err){
-							console.log('----- search err -----')
-							console.log(err.message)
-							cb(err,null)
-						}
-						if(!docs || docs.length == 0){
-							console.log('----- no result now -----')
-					 		cb(1,1)
-						}
-						if(docs && docs.length !=0){
-							cb(null,docs.length)
-						}
-					})
-			},
-			function(length,cb){
-				console.log('total length: ',length)
-				limit = parseInt(limit)
-				offset = parseInt(offset)
-				let numSkip = (offset)*limit
-				console.log('skip num is: ',numSkip)
-				let search = apply.find({},{'room_name':1,'meeting_name':1,'meeting_date':1,'exact_meeting_time':1,'meeting_content':1,'apply_time':1,'meeting_num':1,'apply_name':1,'apply_phone':1,'is_approved':1,'_id':1,'is_allowed':1,'week_day':1})
-					search.where('room_name').in(room_name_arr)
-					search.where('apply_name').equals(applier)
-					search.sort({'apply_time':-1})
-					search.limit(limit)
-					search.skip(numSkip)
-					search.exec(function(err,docs){
-						if(err){
-							console.log('----- search err -----')
-							console.log(err.message)
-							cb(err,null)
-						}
-						if(!docs || docs.length == 0){
-							console.log('----- no result now -----')
-							cb(1,1)
-						}
-						if(docs && docs.length !=0){//格式化并将length加入
-							for(let i=0;i<docs.length;i++){
-								//格式化时间戳
-								//docs[i].apply_time = moment(docs[i].apply_time).format('YYYY-MM-DD HH:mm:ss')
-								//console.log('check applytime : ',docs[i].apply_time)
-								if(typeof(docs[i].week_day) == 'undefined'){
-									docs[i].week_day = ''
-								}
-								docs[i].exact_meeting_time = docs[i].meeting_date + ' ' + docs[i].week_day + ' ' + docs[i].exact_meeting_time
-								console.log('docs.is_approved: ',docs[i].is_approved)
-								console.log('docs.is_allowed: ',docs[i].is_allowed)
-								console.log(docs[i])
-								if(docs[i].is_approved == 0 && docs[i].is_allowed == 0){
-									console.log('--- check here -----')
-									docs[i].is_approved = '未审批'
-									console.log(docs[i].is_approved)
-								}
-								else if(docs[i].is_approved == 1 && docs[i].is_allowed == 0){
-									console.log('--- check here -----')
-									docs[i].is_approved = '已批准'
-									console.log(docs[i].is_approved)
-								}
-								else{//docs[i].is_approved == 0 && docs[i].is_allowed == 1
-									console.log('----- check here hrere -----')
-									docs[i].is_approved = '未批准'
-								}
-							}
-
-							 docs = {
-							 	total : length,
-							 	docs : docs,
-							 	offset : offset
-							 }
-							 cb(null,docs)
-						}
-					})
-			}],function(err,result){
-				if(err && result == 1){
-					console.log('----- async no records -----')
-					callback(err,1)
-				}
-				else if(err && result == null){
-					console.log('----- async err -----')
-					callback(err,null)
-				}
-				else{//(result && result.length != 0)
-					console.log('----- async final result -----')
-					callback(null,result)
-				}
-		})
-	}
-	
-}
 exports.applyRecordQuery = function(limit,offset,begin_date,end_date,applier,callback){
 	console.log('applier is-->',applier)
 	//如果begin_date为空，取默认值2017-01-01,end_time为空，取当前时间戳
@@ -1912,227 +2288,7 @@ exports.applyRecordQuery = function(limit,offset,begin_date,end_date,applier,cal
 	})
 }
 //get apply for approve matching query date
-exports.applyApproveQuery = function(limit,offset,begin_date,end_date,username,applier,callback){
-	console.log('session username is -->',username)
-	if(username == 'admin1'){
-		var room_name_arr = ['624小教室--有电脑(68人)','623会议室--无电脑(16-24人)']
-	}
-	else if(username == 'admin2'){
-		var room_name_arr = ['1楼报告厅--无电脑(452人)']
-	}
-	else if(username == 'admin3'){
-		var room_name_arr = ['412会议室--无电脑(11人)','407小教室--有电脑(42人)']
-	}
-	else{
-		var room_name_arr = ['407小教室--有电脑(42人)','624小教室--有电脑(68人)','623会议室--无电脑(16-24人)','1楼报告厅--无电脑(452人)','412会议室--无电脑(11人)','1019会议室--无电脑(20人)','407小教室--无电脑(42人)','938会议室--有电脑(48-60人)']
-	}
-	console.log('check room_name_arr -->',room_name_arr)
 
-	//如果begin_date为空，取默认值2017-01-01,end_time为空，取当前时间戳
-	if(!begin_date || typeof begin_date == 'undefined'){
-		begin_date = moment('2017-01-01','YYYY-MM-DD').format('X')
-		console.log('begin_date is null')
-		console.log('check begin_date timeStamp',begin_date)
-	}else{
-		console.log('begin_date is not null')
-		begin_date = moment(begin_date,'YYYY-MM-DD').format('X')
-		console.log('check begin_date timeStamp',begin_date)
-	}
-	if(!end_date || typeof end_date == 'undefined'){
-		end_date = moment().format('X')
-		console.log('end_date is null ')
-		console.log('check end_date timeStamp',end_date)
-	}else{
-		end_date = moment(end_date,'YYYY-MM-DD').add(1,'days').format('X')
-		console.log('end_date is not null')
-		console.log('check end_date timeStamp',begin_date)
-	}
-	if(!applier){
-		console.log('----- 没有输入申请人 -----')
-		async.waterfall([
-			function(cb){
-				let search = apply.find({})
-					search.where('room_name').in(room_name_arr)
-					search.where('apply_timeStamp').gte(begin_date)
-					search.where('apply_timeStamp').lte(end_date)
-					search.where('is_approved').equals('1')
-					search.exec(function(err,docs){
-						if(err){
-							console.log('----- search err -----')
-							console.log(err.message)
-							cb(err,null)
-						}
-						if(!docs || docs.length == 0){
-							console.log('----- no result now -----')
-							cb(1,1)
-						}
-						if(docs && docs.length !=0){
-							console.log('check apply records that fetch condition: ',docs)
-							cb(null,docs.length)
-						}
-					})
-			},
-			function(length,cb){
-				console.log('check records length: ',length)
-				limit = parseInt(limit)
-				offset = parseInt(offset)
-				let numSkip = (offset)*limit
-				console.log('skip num is: ',numSkip)
-				let secondSearch = apply.find({},{'room_name':1,'meeting_name':1,'meeting_date':1,'exact_meeting_time':1,'meeting_content':1,'apply_time':1,'meeting_num':1,'apply_name':1,'apply_phone':1,'is_approved':1,'_id':1,'is_allowed':1,'week_day':1})
-					secondSearch.where('room_name').in(room_name_arr)
-					secondSearch.where('apply_timeStamp').gte(begin_date)
-					secondSearch.where('apply_timeStamp').lte(end_date)
-					//secondSearch.select()
-					secondSearch.where('is_approved').equals('1')
-					secondSearch.sort({'apply_time':-1})
-					secondSearch.limit(limit)
-					secondSearch.skip(numSkip)
-					secondSearch.exec(function(err,docs){
-						if(err){
-							console.log('----- search err -----')
-							console.log(err.message)
-							cb(err,null)
-						}
-						if(!docs || docs.length == 0){
-							console.log('----- no result now -----')
-							cb(1,1)
-						}
-						if(docs && docs.length != 0){
-							
-							for(let i=0;i<docs.length;i++){
-								if(typeof(docs[i].week_day) == 'undefined'){
-									docs[i].week_day = ''
-								}
-								docs[i].exact_meeting_time = docs[i].meeting_date + ' ' + docs[i].week_day + ' ' + docs[i].exact_meeting_time
-								console.log('docs.is_approved: ',docs[i].is_approved)
-								if(docs[i].is_approved == 1){
-									console.log('--- check here -----')
-									docs[i].is_approved = '已批准'
-									console.log(docs[i].is_approved)
-								}
-								else{
-									console.log('----- check here hrere -----')
-									docs[i].is_approved = '未批准'
-								}
-							}
-							docs = {
-								 	total : length,
-								 	docs : docs,
-								 	offset : offset
-								 }
-							cb(null,docs)
-						}
-					})
-			}
-		],function(err,result){
-			if(err && result == 1){
-				console.log('----- async no records -----')
-				callback(err,1)
-			}
-			else if(err && result == null){
-				console.log('----- async err -----')
-				callback(err,null)
-			}
-			else{//(result && result.length != 0)
-				console.log('----- async final result -----')
-				callback(null,result)
-			}
-		})
-	}else{
-		console.log('----- 输入申请人 -----')
-		async.waterfall([
-			function(cb){
-				let search = apply.find({})
-					search.where('room_name').in(room_name_arr)
-					search.where('apply_name').equals(applier)
-					search.where('apply_timeStamp').gte(begin_date)
-					search.where('apply_timeStamp').lte(end_date)
-					//search.where('is_approved').equals('1')
-					search.exec(function(err,docs){
-						if(err){
-							console.log('----- search err -----')
-							console.log(err.message)
-							cb(err,null)
-						}
-						if(!docs || docs.length == 0){
-							console.log('----- no result now -----')
-							cb(1,1)
-						}
-						if(docs && docs.length !=0){
-							console.log('check apply records that fetch condition: ',docs)
-							cb(null,docs.length)
-						}
-					})
-			},
-			function(length,cb){
-				console.log('check records length: ',length)
-				limit = parseInt(limit)
-				offset = parseInt(offset)
-				let numSkip = (offset)*limit
-				console.log('skip num is: ',numSkip)
-				let secondSearch = apply.find({},{'room_name':1,'meeting_name':1,'meeting_date':1,'exact_meeting_time':1,'meeting_content':1,'apply_time':1,'meeting_num':1,'apply_name':1,'apply_phone':1,'is_approved':1,'_id':1,'is_allowed':1,'week_day':1})
-					secondSearch.where('room_name').in(room_name_arr)
-					secondSearch.where('apply_name').equals(applier)
-					secondSearch.where('apply_timeStamp').gte(begin_date)
-					secondSearch.where('apply_timeStamp').lte(end_date)
-					//secondSearch.select()
-					//secondSearch.where('is_approved').equals('1')
-					secondSearch.sort({'apply_time':-1})
-					secondSearch.limit(limit)
-					secondSearch.skip(numSkip)
-					secondSearch.exec(function(err,docs){
-						if(err){
-							console.log('----- search err -----')
-							console.log(err.message)
-							cb(err,null)
-						}
-						if(!docs || docs.length == 0){
-							console.log('----- no result now -----')
-							cb(1,1)
-						}
-						if(docs && docs.length != 0){
-							
-							for(let i=0;i<docs.length;i++){
-								if(typeof(docs[i].week_day) == 'undefined'){
-									docs[i].week_day = ''
-								}
-								docs[i].exact_meeting_time = docs[i].meeting_date + ' ' + docs[i].week_day + ' ' + docs[i].exact_meeting_time
-								console.log('docs.is_approved: ',docs[i].is_approved)
-								if(docs[i].is_approved == 1){
-									console.log('--- check here -----')
-									docs[i].is_approved = '已批准'
-									console.log(docs[i].is_approved)
-								}
-								else{
-									console.log('----- check here hrere -----')
-									docs[i].is_approved = '未批准'
-								}
-							}
-							docs = {
-								 	total : length,
-								 	docs : docs,
-								 	offset : offset
-								 }
-							cb(null,docs)
-						}
-					})
-			}
-		],function(err,result){
-			if(err && result == 1){
-				console.log('----- async no records -----')
-				callback(err,1)
-			}
-			else if(err && result == null){
-				console.log('----- async err -----')
-				callback(err,null)
-			}
-			else{//(result && result.length != 0)
-				console.log('----- async final result -----')
-				callback(null,result)
-			}
-		})
-	}
-}
 //applyDetail
 exports.applyDetail = function(_id,callback){
 	apply.findOne({'_id':_id},function(err,doc){

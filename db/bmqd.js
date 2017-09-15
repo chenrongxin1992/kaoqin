@@ -25,7 +25,8 @@ var bmqdSchema = new Schema({
     xiaoyuankahao:{type:String},
     meeting_place:{type:String},
     meeting_type:{type:String,default:'0'},
-    meeting_nianji:{type:String}
+    meeting_nianji:{type:String},
+    is_dynamic:{type:String,default:'0'}
 })
 
 module.exports = mongoose.model('bmqd',bmqdSchema);

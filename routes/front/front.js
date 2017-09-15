@@ -110,6 +110,7 @@ router.get('/chaxun',function(req,res){
 		console.log('----- user not login -----')
 		return res.redirect('/front/login')
 	}
+	return res.render('front/chaxun')
 
 })
 
@@ -203,6 +204,127 @@ router.get('/zhuxiao_',function(req,res){
 	return res.json({'errCode':0,'errMsg':'已注销！'})
 })
 
+//数据查询
+router.get('/meetingRecord',function(req,res){
+	console.log('in router meetingRecord')
+	//获取分页参数
+	let limit = req.query.limit, 	//这个相当于条数
+		offset = req.query.offset 	//这个相当于pages
+	if(!limit || limit == null || typeof limit == 'undefined'){//页面记录数
+		limit = 10
+	}
+	if(!offset || offset == null || typeof offset == 'undefined'){//当前页数
+		offset = 0
+	}
+	offset = parseInt(offset/limit)
+	console.log('check limit && offset: ',limit,offset)
+	let begin_date = req.query.begin_date,
+		end_date = req.query.end_date
+
+	let meeting_type = req.query.meeting_type
+	console.log('begin_date && end_date && meeting_type-->',begin_date,end_date,meeting_type)
+	//如果日期都为空，则默认全部取出
+	if(!begin_date && !end_date){
+		console.log('begin_date && end_date are null,default ')
+		logic.applyApprove(limit,offset,meeting_type,function(error,result){
+			if(error && result == null){//查询出错
+				return res.json({'errCode':-1,'errMsg':error.message})
+			}
+			else if(error && result == 1){
+				return res.json({total:0,rows:[],offset:0})
+			}
+			else{//(error == null && result)
+				let total = result.length,
+					rows = result
+				console.log('total is ',result.total)
+				//console.log('rows is ',result.docs)
+				console.log('offset is ',result.offset)
+				return res.json({total:result.total,rows:result.docs,offset:result.offset})
+			}
+		})
+	}
+	else{//日期不为空情况
+		console.log('check begin_date && end_date: ',begin_date,end_date)
+		logic.applyApproveQuery(limit,offset,begin_date,end_date,meeting_type,function(error,result){
+			if(error && result == null){
+				return res.json({'errCode':-1,'errMsg':error.message})
+			}
+			else if(error && result == 1){
+				console.log('----- here -----')
+				return res.json({total:0,rows:[],offset:0})
+			}
+			else{
+				let total = result.length
+					rows  = result
+				console.log('total is ',result.total)
+				//console.log('rows is ',result.docs)
+				console.log('offset is ',result.offset)
+				return res.json({total:result.total,rows:result.docs,offset:result.offset})
+			}
+		})
+	}
+})
+
+//签到详情页
+//for render a page
+router.get('/qiandaoDetail',function(req,res){
+	console.log('----- in router qiandaoDetail -----')
+	if(!req.session.user){
+		return res.redirect('/front/login')
+	}else{
+		req.session.randomStr = req.query.randomStr
+		return res.render('front/qiandaoDetail')
+	}
+})
+
+//签到详情页接口
+router.get('/qiandaoDetail_API',function(req,res){
+	console.log('in router qiandaoDetail_API')
+	//获取分页参数
+	let limit = req.query.limit, 	//这个相当于条数
+		offset = req.query.offset 	//这个相当于pages
+	if(!limit || limit == null || typeof limit == 'undefined'){//页面记录数
+		limit = 10
+	}
+	if(!offset || offset == null || typeof offset == 'undefined'){//当前页数
+		offset = 0
+	}
+	offset = parseInt(offset/limit)
+	console.log('check limit && offset: ',limit,offset)
+
+	let randomStr = req.session.randomStr
+	console.log('check randomStr -->',randomStr)
+	if(!randomStr){
+		return res.redirect('front/overview')
+	}else{
+			logic.getQianDaoDetail(limit,offset,randomStr,function(error,result){
+				if(error && error != 1){//查询出错
+					return res.json({'errCode':-1,'errMsg':error.message})
+				}
+				else if(error && error == 1){
+					//return res.json({total:0,rows:[],offset:0})
+					return res.json({'errCode':-1,'errMsg':result})
+				}
+				else{//(error == null && result)
+					let total = result.total,
+						rows = result
+					console.log('total is ',result.total)
+					console.log('offset is ',result.offset)
+					return res.json({total:result.total,rows:result.docs,offset:result.offset})
+				}
+	})
+	//res.render('front/qiandaoDetail')
+	}
+})
+
+//学生签到统计
+router.get('/studentStatic',function(req,res){
+	let xiaoyuankahao = req.query.xiaoyuankahao
+	consolelog('学生校园卡号-->',xiaoyuankahao)
+	logic.studentStatic(xiaoyuankahao,function(error,result){
+		
+	})
+})
 //报名接口http://116.13.96.53:81/front/baoming/?r=766k5a&b=1
 //http://qiandao.szu.edu.cn:81/front/baoming/?r=766k5a&b=1
 router.get('/baoming',function(req,res){
@@ -268,7 +390,7 @@ router.get('/baoming',function(req,res){
 				console.log('here --> 2')
 				let ReturnURL = 'http://' + req.headers.host + req.originalUrl //http://116.13.96.53:81/front/baoming/
 				console.log('ReturnURL url-->',ReturnURL)
-				console.log('you ticket')
+				console.log('you ticket, meiyou session')
 				let ticket = req.query.ticket
 				console.log('check ticket-->',ticket)
 				let url = CASserver + 'serviceValidate?ticket=' + ticket + '&service=' + ReturnURL
@@ -299,10 +421,19 @@ router.get('/baoming',function(req,res){
 						   	arg.RankName = RankName
 						   	arg.r = req.query.r
 						   console.log('check arg-->',arg)
-						   req.session.student = arg
-
-						   console.log('session 已设置，跳转回去-->',ReturnURL)
-						   return res.redirect(ReturnURL)
+						   if(arg.user == null){
+						   	console.log('ticket 有问题,重新回去获取ticket，清空session')
+						   	req.session.student = null
+						   	let temp_url = ReturnURL.substring(0,52)
+						   	console.log('check temp_url-->',temp_url)
+						   	return res.redirect(temp_url)
+						   }else{
+						   	req.session.student = arg
+						   	return res.redirect(ReturnURL)
+						   }
+						   // req.session.student = arg
+						   // console.log('session 已设置，跳转回去-->',ReturnURL)
+						   // return res.redirect(ReturnURL)
 				     }else{
 				     	console.log(error)
 				     }
@@ -433,8 +564,16 @@ router.get('/qiandao',function(req,res){
 					   	   arg.RankName = RankName
 					   	   arg.r = req.query.r
 					   console.log('check arg-->',arg)
-					   req.session.student = arg
-					   return res.redirect(ReturnURL)
+					   if(arg.user == null){
+					   	console.log('ticket is unvalid,重新回去获取ticket，清空session')
+					   	req.session.student = null
+					   	let temp_url = ReturnURL.substring(0,52)
+					   	console.log('check temp_url-->',temp_url)
+					   	return res.redirect(temp_url)
+					   }else{
+					   	req.session.student = arg
+					   	return res.redirect(ReturnURL)
+					   }
 				}
 			    else{
 			     	console.log(error)
@@ -443,20 +582,24 @@ router.get('/qiandao',function(req,res){
 		}
 	}
 }).post('/qiandao',function(req,res){
-	logic.qiandao(req.body,function(error,result){
-		if(error && error != 1){
-			console.log('----- jiingtai qiandao router err -----')
-			return res.json({'errCode':-1,'errMsg':error.message})
-		}
-		if(error == 1 && result){
-			console.log('----- jiingtai qiandao router 已经签到 -----')
-			return res.json({'errCode':-1,'errMsg':'已经签到过'})
-		}
-		if(error == null && result){
-			console.log('----- jiingtai qiandao router success -----')
-			return res.json({'errCode':0,'errMsg':'签到成功'})
-		}
-	})
+	if(!req.body.people_no){
+		return
+	}else{
+		logic.qiandao(req.body,function(error,result){
+			if(error && error != 1){
+				console.log('----- jiingtai qiandao router err -----')
+				return res.json({'errCode':-1,'errMsg':error.message})
+			}
+			if(error == 1 && result){
+				console.log('----- jiingtai qiandao router 已经签到 -----')
+				return res.json({'errCode':-1,'errMsg':'已经签到过'})
+			}
+			if(error == null && result){
+				console.log('----- jiingtai qiandao router success -----')
+				return res.json({'errCode':0,'errMsg':'签到成功'})
+			}
+		})
+	}
 })
 
 //动态签到
@@ -467,7 +610,8 @@ router.get('/qiandaodongtai',function(req,res){
 		let nowTimeStamp = moment().format('X')
 		console.log('check nowTimeStamp-->',nowTimeStamp)
 		console.log('check t-->',req.query.t)
-		if(nowTimeStamp - req.query.t > 180){
+		console.log('请求到达服务器时间 - 二维码时间戳 --> ',nowTimeStamp-req.query.t)
+		if(nowTimeStamp - req.query.t > 15){
 			console.log('----- 二维码过期 -----')
 			return res.render('front/guoqi')
 		}else{
@@ -504,7 +648,7 @@ router.get('/qiandaodongtai',function(req,res){
 							}
 							if(result && result != '已经签到！'){
 								console.log('----- 动态 qiandao router -----')
-								return res.render('front/qiandao',{'xiaoyuankahao':req.session.student.alias,'name':req.session.student.cn,'result':result})
+								return res.render('front/qiandaodongtai',{'xiaoyuankahao':req.session.student.alias,'name':req.session.student.cn,'result':result})
 							}
 						})
 			}
@@ -531,7 +675,7 @@ router.get('/qiandaodongtai',function(req,res){
 							}
 							if(result && result != '已经签到！'){
 								console.log('----- qiandao router -----')
-								return res.render('front/qiandao',{'xiaoyuankahao':req.session.student.alias,'name':req.session.student.cn,'result':result})
+								return res.render('front/qiandaodongtai',{'xiaoyuankahao':req.session.student.alias,'name':req.session.student.cn,'result':result})
 							}
 						})
 			}
@@ -539,6 +683,8 @@ router.get('/qiandaodongtai',function(req,res){
 				console.log('here -- > 2')
 				let ticket = req.query.ticket
 				console.log('check ticket-->',ticket)
+				let ReturnURL = 'http://' + req.headers.host + req.originalUrl 
+				console.log('check here 2 ReturnURL --> ',ReturnURL)
 				let url = CASserver + 'serviceValidate?ticket=' + ticket + '&service=' + ReturnURL
 				console.log('check url -->',url)
 				request(url, function (error, response, body) {
@@ -577,8 +723,19 @@ router.get('/qiandaodongtai',function(req,res){
 						   	   arg.RankName = RankName
 						   	   arg.r = req.query.r
 						   console.log('check arg-->',arg)
-						   req.session.student = arg
-						return res.redirect(ReturnURL)
+						   if(arg.user == null){
+						   	console.log('ticket is unvalid,重新回去获取ticket，清空session')
+						   	req.session.student = null
+						   	let temp_url = ReturnURL.substring(0,59)
+						   		temp_url = temp_url + '&t=' + moment().format('X')
+						   	console.log('check temp_url-->',temp_url)
+						   	return res.redirect(temp_url)
+						   }else{
+						   	req.session.student = arg
+						   	return res.redirect(ReturnURL)
+						   }
+						   // req.session.student = arg
+						   // return res.redirect(ReturnURL)
 					}
 			     	else{
 			     		console.log(error)
@@ -587,21 +744,25 @@ router.get('/qiandaodongtai',function(req,res){
 		}
 	}
 }
-}).post('/qiandao',function(req,res){
-	logic.qiandao(req.body,function(error,result){
-		if(error && error != 1){
-			console.log('----- dongtai qiandao router err -----')
-			return res.json({'errCode':-1,'errMsg':error.message})
-		}
-		if(error == 1 && result){
-			console.log('----- dongtai qiandao router 已经签到 -----')
-			return res.json({'errCode':-1,'errMsg':'已经签到过'})
-		}
-		if(error == null && result){
-			console.log('----- dongtai qiandao router success -----')
-			return res.json({'errCode':0,'errMsg':'签到成功'})
-		}
-	})
+}).post('/qiandaodongtai',function(req,res){
+	if(!req.body.people_no){
+		return 
+	}else{
+		logic.qiandaodongtai(req.body,function(error,result){
+			if(error && error != 1){
+				console.log('----- dongtai qiandao router err -----')
+				return res.json({'errCode':-1,'errMsg':error.message})
+			}
+			if(error == 1 && result){
+				console.log('----- dongtai qiandao router 已经签到 -----')
+				return res.json({'errCode':-1,'errMsg':'已经签到过'})
+			}
+			if(error == null && result){
+				console.log('----- dongtai qiandao router success -----')
+				return res.json({'errCode':0,'errMsg':'签到成功'})
+			}
+		})
+	}
 })
 
 //已报名页面
@@ -629,16 +790,16 @@ router.get('/yibaoming',function(req,res){
 router.get('/baomingchenggong',function(req,res){
 	//获取会议信息
 	console.log('router baomingchenggong')
-	console.log(req.session.student)
+	console.log('session -- >',req.session.student)
 	let student = req.session.student
 	logic.getMeetingDetail(req.session.student.r,function(error,result){
 		if(error){
-			console.log('yiqiandao router error')
+			console.log('baomingchenggong router error')
 			console.log(error)
 			return res.json({'errCode':-1,'errMsg':'查询出错'})
 		}
 		if(!result){
-			console.log('yiqiandao router result is null')
+			console.log('baomingchenggong router result is null')
 			return res.json({'errCode':-1,'errMsg':'没有该会议信息！'})
 		}
 		if(result){
@@ -672,7 +833,7 @@ router.get('/yiqiandao',function(req,res){
 //签到成功页面
 router.get('/qiandaochenggong',function(req,res){
 	//获取会议信息
-	console.log(req.session.student)
+	console.log('qiandaochenggong --> session --> ',req.session.student)
 	let student = req.session.student
 	logic.getMeetingDetail(req.session.student.r,function(error,result){
 		if(error){

@@ -329,6 +329,7 @@
                 console.log(result)
                 if(result.errCode == 0 && result.errMsg == '签到成功'){
                   window.location.href = '/front/qiandaochenggong'
+                  return false
                   //弹出模态框
                   // $('.modal-msg').modal('show')
                   // $('.modal-body').text('报名成功！')
@@ -337,6 +338,7 @@
                 }
                 if(result.errCode == -1 && result.errMsg == '已经签到过'){
                   window.location.href = '/front/yiqiandao'
+                  return false
                   // //弹出模态框
                   // $('.modal-msg').modal('show')
                   // $('.modal-body').text(result.errMsg)
@@ -348,7 +350,8 @@
                 console.error(e.message)
                 $('.modal-msg').modal('show')
                 $('.modal-body').text('签到失败！')
-              },
+                return false
+              }
           });
             return false
         })
