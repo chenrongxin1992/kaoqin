@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- 上述3个meta标签*必须*放在最前面，任何其他内容都*必须*跟随其后！ -->
+    <title>个人信息</title>
+
+    <!-- Bootstrap -->
+    <link rel="stylesheet" href="http://cdn.bootcss.com/bootstrap/3.3.2/css/bootstrap.min.css">
+    <link rel='stylesheet' href='/stylesheets/style.css' />
+    <link rel='stylesheet' href='/stylesheets/bootstrap-datetimepicker.min.css' />
+    <link rel='stylesheet' href='/stylesheets/bootstrap-select.css' />
+    <link rel='stylesheet' href='/stylesheets/bootstrapValidator.min.css' />
+    <link rel='stylesheet' href='/stylesheets/bootstrap-switch.min.css' />
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+      <script src="https://cdn.bootcss.com/html5shiv/3.7.3/html5shiv.min.js"></script>
+      <script src="https://cdn.bootcss.com/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+    <style type="text/css">
+      body{
+        padding: 0;
+        font-family: '微软雅黑';;
+      }
+      .head{
+        font-size:26px;
+        background-color: #F0F8FF;
+        /*border: 1px solid #ddd;*/
+        margin:5px 0;
+        height: 50px;
+        padding: 5px 0 0 0;
+
+      }
+      .part{
+        background-color: #F0F8FF;
+        border: 1px solid #ddd;
+        margin:5px 0px;
+        line-height: 150px;
+      }
+      .part:hover{
+        background-color: #EEEEE0;
+      }
+      @media (min-width: 1170px) {
+        .user{
+          height: 70px;
+          background-color: #F0F8FF;
+          line-height: 70px;
+          vertical-align: bottom;
+          padding-top: 13px;
+        }
+      }
+      .user{
+        background-color: #F0F8FF;
+        vertical-align: bottom;
+      }
+      hr{
+        margin: 5px 5px;
+        color: #EECFA1;
+        border: 1px solid;
+      }
+      .footer{
+        text-align: center;
+      }
+      a{
+        font-size: 18px;
+      }
+      a:hover{
+        font-size: 20px;
+        text-decoration:none
+      }
+      .uniform{
+        padding: 15px 15px;
+      }
+      #ui-datepicker-div{
+        display: none;
+      }
+      .bootstrap-select > .dropdown-toggle{
+        width: auto;
+      }
+      .dropdown-menu > .open{
+        width: auto;
+      }
+      .bootstrap-select.btn-group .dropdown-menu{
+        min-width: 10%;
+      }
+      .to{
+        text-align: center;
+        font-size: medium;
+        line-height: 34px;
+      }
+      #code{
+        min-height: 300px;
+        text-align: center;
+        margin : 10px 0;
+      }
+      @media (max-width: 768px) {
+        .btn_ {
+          margin:5px 0;
+        }
+        .meeting_date{
+          text-align: left;
+          margin-left: -15px;
+          min-height: 26px;
+        }
+        .meeting_info{
+          min-height: 26px;
+        }
+        .dynamic_code{
+          margin-left: -15px;
+          line-height: 32px;
+        }
+        .uniform{
+          padding: 0 15px;
+        }
+      }
+      @media (min-width: 768px) {
+        .meeting_date{
+          text-align: right;
+        }
+        .dynamic_code{
+          text-align: right;
+          line-height: 32px;
+        }
+        .meeting_info{
+          line-height: 34px;
+        }
+      }
+      .note{
+
+        background-color: #F0F8FF;
+      }
+      .description{
+
+      }
+      .bootstrap-select > .dropdown-toggle {
+        width: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="row">
+        <div class="col-lg-9 col-md-9 col-sm-12 col-xs-12">
+          <img src="/images/szucsselogo.png" class="img-responsive" alt="">  
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 ">
+          <p class="text-center head">个人信息</p>
+        </div>
+      </div>
+
+      <div class="row uniform">
+        <form class="form-horizontal">
+
+          <div class="form-group">
+            <label for="people_no" class="col-lg-5 col-md-5 col-sm-5 col-xs-12 control-label">校园卡号</label>
+            <div class="col-lg-5 col-md-5 col-sm-5 col-xs-12 meeting_info" id="people_noo">
+              <input type="text" class="form-control" id="people_no" name="people_no" readonly="readonly">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="name" class="col-lg-5 col-md-5 col-sm-5 col-xs-12 control-label">姓名</label>
+            <div class="col-lg-5 col-md-5 col-sm-5 col-xs-12 meeting_info" id="people_noo">
+              <input type="text" class="form-control" id="name" name="name" readonly="readonly">
+            </div>
+          </div>
+
+        </form>
+      </div>
+
+      <div class="row">
+        <hr>
+      </div>
+
+      <div class="row">
+        <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 footer">
+          <span>2017 © 计算机与软件学院</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 模态框 -->
+    <!-- Button trigger modal -->
+    <!-- Modal -->
+    <div class="modal fade modal-msg" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel" id="data-modal">
+    <div class="modal-dialog modal-md modal-xs" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+          <h4 class="modal-title" id="gridSystemModalLabel">报名结果</h4>
+        </div>
+        <div class="modal-body">
+
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-success sure" data-dismiss="modal" id="result-sure">确定</button>
+        </div>
+      </div>
+    </div>
+  </div>
+    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+    <!-- Include all compiled plugins (below), or include individual files as needed -->
+    <script src="http://cdn.bootcss.com/jquery/1.11.2/jquery.min.js"></script>
+    <script src="http://cdn.bootcss.com/bootstrap/3.3.2/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src='/javascripts/moment-with-locales.min.js' ></script>
+    <script type="text/javascript" src='/javascripts/bootstrap-datetimepicker.min.js' ></script>
+    <script type="text/javascript" src='/javascripts/bootstrap-select.js' ></script>
+    <script type="text/javascript" src='/javascripts/bootstrapValidator.min.js' ></script>
+    <script type="text/javascript" src='/javascripts/jquery.qrcode.min.js' ></script>
+    <script type="text/javascript" src='/javascripts/bootstrap-switch.min.js' ></script>
+    <script type="text/javascript">
+    function br2nl(txt){
+        var re=/(<br\s\/>|<br>|<BR>|<BR\/>)/g;
+        var s=txt.replace(re,"\n");
+        return s;                                  
+    }
+    $.fn.bootstrapSwitch.defaults.size = 'small';
+    $.fn.bootstrapSwitch.defaults.onColor = 'success';
+    jQuery.browser={};(function(){jQuery.browser.msie=false; 
+    jQuery.browser.version=0;if(navigator.userAgent.match(/MSIE ([0-9]+)./)){ jQuery.browser.msie=true;jQuery.browser.version=RegExp.$1;}})();
+       $(function() {
+        'use strict';
+        //后台传递数据对form表单赋值
+          
+          
+          $('#people_no').val('<%- xiaoyuankahao %>')
+          $('#name').val('<%- name %>')
+         
+      })
+
+     
+
+    </script>
+  </body>
+</html>

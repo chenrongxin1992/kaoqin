@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- 上述3个meta标签*必须*放在最前面，任何其他内容都*必须*跟随其后！ -->
+    <title>学生签到统计</title>
+
+    <!-- Bootstrap -->
+    <link rel="stylesheet" href="http://cdn.bootcss.com/bootstrap/3.3.2/css/bootstrap.min.css">
+    <link rel='stylesheet' href='/stylesheets/style.css' />
+    <link rel='stylesheet' href='/stylesheets/bootstrap-select.css' />
+    <link rel='stylesheet' href='/stylesheets/bootstrapValidator.min.css' />
+    <link rel='stylesheet' href='/stylesheets/bootstrap-switch.min.css' />
+    <link rel="stylesheet" href="/stylesheets/bootstrap-table.min.css" >
+    <link rel='stylesheet' href='/stylesheets/bootstrap-datetimepicker.css' />
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+      <script src="https://cdn.bootcss.com/html5shiv/3.7.3/html5shiv.min.js"></script>
+      <script src="https://cdn.bootcss.com/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+    <style type="text/css">
+      body{
+        padding: 0;
+        font-family: '微软雅黑';;
+      }
+      .head{
+        color: #00B7FF;
+        font-size:26px;
+        background-color: #F0F8FF;
+        /*border: 1px solid #ddd;*/
+        margin:5px 0;
+        height: 50px;
+        padding: 5px 0 0 0;
+
+      }
+      .part{
+        background-color: #F0F8FF;
+        border: 1px solid #ddd;
+        margin:5px 0px;
+        line-height: 150px;
+      }
+      .part:hover{
+        background-color: #EEEEE0;
+      }
+      @media (min-width: 1170px) {
+        .user{
+          height: 70px;
+          line-height: 70px;
+          vertical-align: bottom;
+          padding-top: 13px;
+        }
+      }
+      .user{
+        vertical-align: bottom;
+      }
+      hr{
+        margin: 5px 5px;
+        color: #EECFA1;
+        border: 1px solid;
+      }
+      .footer{
+        text-align: center;
+      }
+      .uniform{
+        padding: 15px 15px;
+      }
+      #ui-datepicker-div{
+        display: none;
+      }
+      .bootstrap-select > .dropdown-toggle{
+        width: auto;
+      }
+      .dropdown-menu > .open{
+        width: auto;
+      }
+      .bootstrap-select.btn-group .dropdown-menu{
+        min-width: 10%;
+      }
+      .to{
+        text-align: center;
+        font-size: medium;
+        line-height: 34px;
+      }
+      #code{
+        min-height: 300px;
+        text-align: center;
+        margin : 10px 0;
+      }
+      @media (max-width: 768px) {
+        .searchBtn{
+          padding-top: 5px;
+        }
+        .meeting_date{
+          text-align: left;
+          margin-left: -15px;
+          min-height: 26px;
+        }
+        .meeting_info{
+          min-height: 26px;
+        }
+        .dynamic_code{
+          margin-left: -15px;
+          line-height: 32px;
+        }
+        .uniform{
+          padding: 0 15px;
+        }
+      }
+      @media (min-width: 768px) {
+        .meeting_date{
+          text-align: right;
+        }
+        .dynamic_code{
+          text-align: right;
+          line-height: 32px;
+        }
+        .meeting_info{
+          line-height: 34px;
+        }
+      }
+      .note{
+
+        background-color: #F0F8FF;
+      }
+      .note_1{
+        margin-top: 10px;
+      }
+      .description{
+
+      }
+      .cancelPadding{
+        padding : 0 0;
+      }
+      th,td{
+        text-align: center;
+      }
+      th{
+        background-color: rgb(222,243,222);
+      }
+      .fixed-table-container {
+        height: auto !important;
+        padding-bottom: 0 !important;
+      }
+      .chart{
+        min-height: 325px;
+        min-width: 325px;
+        text-align: center;
+      }
+      .stu_message{
+        text-align: center;
+        font-size: 18px;
+        padding: 5px 0;
+      }
+
+    </style>
+  </head>
+  <body>
+    <div class="container ">
+      <div class="row">
+        <div class="col-lg-9 col-md-9 col-sm-12 col-xs-12">
+          <img src="../images/szucsselogo.png" class="img-responsive" alt="">  
+        </div>
+        <div class="col-lg-3 col-md-3 col-sm-12 col-xs-12 user">
+          <span class="pull-right user"> <a href="/front/overview">首页</a> | 当前用户:<span style="color: red"> <%=user.name%></span>  | <a href="/front/logout">退出</a>
+        </div>
+      </div>
+
+      <div class="row ">
+        <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 ">
+          <p class="text-center head" id="stu_statistic"></p>
+        </div>
+      </div>
+
+      <div class="row ">
+        <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12 ">
+          <div id="huiyi_chart" class="chart"></div>
+        </div>
+        <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12 ">
+          <div id="stu_chart" class="chart"></div>
+        </div>
+      </div>
+
+      <div class="row ">
+        <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 stu_message">
+          <span id="stu_msg"></span>
+        </div>
+      </div>
+
+      <div class="row uniform">
+        <form class="form-horizontal">
+          <div class="form-group">
+            <label for="jxhy_zongshu" class="col-lg-5 col-md-5 col-sm-5 col-xs-12 control-label">本学期共举行会议</label>
+            <div class="col-lg-5 col-md-5 col-sm-5 col-xs-12">
+              <input type="text" class="form-control input-sm" id="jxhy_zongshu" name="jxhy_zongshu" readonly="readonly">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="jxhy_nianji" class="col-lg-5 col-md-5 col-sm-5 col-xs-12 control-label ">年级会议</label>
+            <div class="col-lg-5 col-md-5 col-sm-5 col-xs-12">
+              <input type="text" class="form-control input-sm" id="jxhy_nianji" name="jxhy_nianji" readonly="readonly">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="jxhy_feinianji" class="col-lg-5 col-md-5 col-sm-5 col-xs-12 control-label">非年级会议</label>
+            <div class="col-lg-5 col-md-5 col-sm-5 col-xs-12">
+              <input type="text" class="form-control input-sm" id="jxhy_feinianji" name="jxhy_feinianji" readonly="readonly">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="xsqdhy_zongshu" class="col-lg-5 col-md-5 col-sm-5 col-xs-12 control-label">该生本学期签到</label>
+            <div class="col-lg-5 col-md-5 col-sm-5 col-xs-12">
+              <input type="text" class="form-control input-sm" id="xsqdhy_zongshu" name="xsqdhy_zongshu" readonly="readonly">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="xsqdhy_nianji" class="col-lg-5 col-md-5 col-sm-5 col-xs-12 control-label">年级会议签到</label>
+            <div class="col-lg-5 col-md-5 col-sm-5 col-xs-12">
+              <input type="text" class="form-control input-sm" id="xsqdhy_nianji" name="xsqdhy_nianji" readonly="readonly">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="xsqdhy_feinianji" class="col-lg-5 col-md-5 col-sm-5 col-xs-12 control-label">非年级会议签到</label>
+            <div class="col-lg-5 col-md-5 col-sm-5 col-xs-12">
+              <input type="text" class="form-control input-sm" id="xsqdhy_feinianji" name="xsqdhy_feinianji" readonly="readonly">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="xsqdhy_ratenj" class="col-lg-5 col-md-5 col-sm-5 col-xs-12 control-label">年级会议签到率</label>
+            <div class="col-lg-5 col-md-5 col-sm-5 col-xs-12">
+              <input type="text" class="form-control input-sm" id="xsqdhy_ratenj" name="xsqdhy_ratenj" readonly="readonly">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="xsqdhy_ratefnj" class="col-lg-5 col-md-5 col-sm-5 col-xs-12 control-label">非年级会议签到率</label>
+            <div class="col-lg-5 col-md-5 col-sm-5 col-xs-12">
+              <input type="text" class="form-control input-sm" id="xsqdhy_ratefnj" name="xsqdhy_ratefnj" readonly="readonly">
+            </div>
+          </div>
+
+        </form>
+      </div>
+
+      <div class="row ">
+        <hr>
+      </div>
+
+      <div class="row ">
+        <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 footer">
+          <span>2017 © 计算机与软件学院</span>
+        </div>
+      </div>
+
+    </div>
+    
+
+    <!-- 模态框 -->
+    <!-- Button trigger modal -->
+    <!-- Modal -->
+
+  <div class="modal fade alert-modal" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel" id="alert-modal">
+    <div class="modal-dialog modal-sm" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+          <h4 class="modal-title" id="gridSystemModalLabel">提示</h4>
+        </div>
+        <div class="modal-body">
+        
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-default sure" data-dismiss="modal" id="alert-btn">确定</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+    <!-- Include all compiled plugins (below), or include individual files as needed -->
+    <script src="http://cdn.bootcss.com/jquery/1.11.2/jquery.min.js"></script>
+    <script src="http://cdn.bootcss.com/bootstrap/3.3.2/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src='/javascripts/echarts.min.js' ></script>
+    <script type="text/javascript">
+       $(function() {
+        'use strict'
+        let stuName = '<%- data.huiyi[0].name %>'
+        console.log('stuName -- >',stuName)
+        $('#stu_statistic').text(stuName + ' 签到统计')
+        $('#stu_msg').text(stuName + ' 签到概况')
+        let jubanhuiyi_nianji = '<%- data.huiyi_info.nianjihuiyishu %>',//举行的年级会议总数
+            jubanhuiyi_feinianji = '<%- data.huiyi_info.feinianjihuiyishu %>',//举行的非年级会议总数
+            jubanhuiyi_zongshu = '<%- data.huiyi_info.huiyizongshu %>',//举行的会议总数
+            xueqi =  '<%- data.xueqi %>',//学期
+            xsqdhy_nianji = '<%- data.nianjihuiyishu %>', //学生签到会议（年级）
+            xsqdhy_feinianji = '<%- data.feinianjihuiyishu %>',//学生签到会议（非年级）
+            xsqdhy_zongshu = '<%- data.huiyizongshu %>'
+
+        if(jubanhuiyi_feinianji == 0){
+          jubanhuiyi_feinianji = 1
+        }
+        let xsqdhy_ratenj = changeTwoDecimal_f(xsqdhy_nianji/jubanhuiyi_nianji),
+            xsqdhy_ratefnj = changeTwoDecimal_f(xsqdhy_feinianji/jubanhuiyi_feinianji)
+        console.log('check num --> ',jubanhuiyi_nianji,jubanhuiyi_feinianji)
+        console.log('check stu_num --> ',xsqdhy_nianji,xsqdhy_feinianji,)
+        $('#jxhy_zongshu').val(jubanhuiyi_zongshu + ' 次')
+        $('#jxhy_nianji').val(jubanhuiyi_nianji + ' 次')
+        $('#jxhy_feinianji').val(jubanhuiyi_feinianji + ' 次')
+
+        $('#xsqdhy_zongshu').val(xsqdhy_zongshu + ' 次')
+        $('#xsqdhy_nianji').val(xsqdhy_nianji + ' 次')
+        $('#xsqdhy_feinianji').val(xsqdhy_feinianji + ' 次')
+
+        $('#xsqdhy_ratenj').val((xsqdhy_ratenj * 100) + '%')
+        $('#xsqdhy_ratefnj').val((xsqdhy_ratefnj * 100) + '%' )
+
+
+        console.log(xueqi)
+        console.log('check num --> ',jubanhuiyi_nianji,jubanhuiyi_feinianji)
+        console.log('check stu_num --> ',xsqdhy_nianji,xsqdhy_feinianji)
+        // 初始化图表标签
+        var huiyi_chart = echarts.init(document.getElementById('huiyi_chart'));
+        var stu_chart = echarts.init(document.getElementById('stu_chart'));
+        var options = {
+            title : {
+                text: '所有已举行会议',
+                subtext: xueqi,
+                x:'center'
+            },
+            tooltip : {
+                trigger: 'item',
+                formatter: "{a} <br/>{b} : {c} ({d}%)"
+            },
+            legend: {
+                orient : 'vertical',
+                x : 'left',
+                data:['年级会议','非年级会议']
+            },
+            toolbox: {
+                show : false,
+                feature : {
+                    mark : {show: true},
+                    dataView : {show: true, readOnly: false},
+                    magicType : {
+                        show: true, 
+                        type: ['pie', 'funnel'],
+                        option: {
+                            funnel: {
+                                x: '25%',
+                                width: '50%',
+                                funnelAlign: 'left',
+                                max: 1548
+                            }
+                        }
+                    },
+                    restore : {show: true},
+                    saveAsImage : {show: true}
+                }
+            },
+            calculable : true,
+            series : [
+                {
+                    name:'已举办会议',
+                    type:'pie',
+                    radius : '55%',
+                    center: ['50%', '60%'],
+                    data:[
+                        {value:jubanhuiyi_nianji, name:'年级会议'},
+                        {value:jubanhuiyi_feinianji, name:'非年级会议'}
+                    ]
+                }
+            ]
+        };
+
+        //学生签到统计
+        var options_stu = {
+            title : {
+                text: '该学生所有已签到会议',
+                subtext: xueqi,
+                x:'center'
+            },
+            tooltip : {
+                trigger: 'item',
+                formatter: "{a} <br/>{b} : {c} ({d}%)"
+            },
+            legend: {
+                orient : 'vertical',
+                x : 'left',
+                data:['年级会议','非年级会议']
+            },
+            toolbox: {
+                show : false,
+                feature : {
+                    mark : {show: true},
+                    dataView : {show: true, readOnly: false},
+                    magicType : {
+                        show: true, 
+                        type: ['pie', 'funnel'],
+                        option: {
+                            funnel: {
+                                x: '25%',
+                                width: '50%',
+                                funnelAlign: 'left',
+                                max: 1548
+                            }
+                        }
+                    },
+                    restore : {show: true},
+                    saveAsImage : {show: true}
+                }
+            },
+            calculable : true,
+            series : [
+                {
+                    name:'已签到会议',
+                    type:'pie',
+                    radius : '55%',
+                    center: ['50%', '60%'],
+                    data:[
+                        {value:xsqdhy_nianji, name:'年级会议'},
+                        {value:xsqdhy_feinianji, name:'非年级会议'}
+                    ]
+                }
+            ]
+        };
+        huiyi_chart.setOption(options);
+        stu_chart.setOption(options_stu);
+       })
+
+function changeTwoDecimal_f(x) {
+    var f_x = parseFloat(x);
+    if (isNaN(f_x)) {
+        alert('function:changeTwoDecimal->parameter error');
+        return false;
+    }
+    var f_x = Math.round(x * 100) / 100;
+    var s_x = f_x.toString();
+    var pos_decimal = s_x.indexOf('.');
+    if (pos_decimal < 0) {
+        pos_decimal = s_x.length;
+        s_x += '.';
+    }
+    while (s_x.length <= pos_decimal + 2) {
+        s_x += '0';
+    }
+    return s_x;
+}//浮点数四舍五入，取小数点后2位，如果不足2位则补0
+    </script>
+  </body>
+</html>

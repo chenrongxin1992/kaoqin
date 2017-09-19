@@ -26,7 +26,8 @@ var bmqdSchema = new Schema({
     meeting_place:{type:String},
     meeting_type:{type:String,default:'0'},
     meeting_nianji:{type:String},
-    is_dynamic:{type:String,default:'0'}
+    is_dynamic:{type:String,default:'0'},
+    meeting_time:{type:String,default:null}
 })
 
 module.exports = mongoose.model('bmqd',bmqdSchema);

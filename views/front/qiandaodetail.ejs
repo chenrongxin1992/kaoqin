@@ -169,6 +169,7 @@
       <div class="row-fluid cancelPadding">
         <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 ">
           <p class="text-center head"> 会议签到详情</p>
+          <p class="pull-right"><a href='/front/weiqiandao?r=<%=randomStr%>' >未签到名单</a> <a href='/front/downloadqiandao?r=<%=randomStr%>' target="_self">下载签到记录</a></p>
         </div>
       </div>
 
@@ -323,8 +324,9 @@
                           console.log('value -- >',value)
                           console.log('row -- >',row)
                           console.log('index -- >',index)
-                             var e = '<a href="/front/studentStatic?xiaoyuankahao='+row.xiaoyuankahao+'">查看签到统计</a> ';  
-                          return e;  
+                             var e = '<a href="/front/studentStatic?xiaoyuankahao='+row.xiaoyuankahao+'">该生签到统计 </a> ';  
+                             var d = '<a href="/front/chaxunstutable?xiaoyuankahao='+row.xiaoyuankahao+'"> 该生签到详情</a> '
+                          return e + d;  
                       } 
                     }]
                 })

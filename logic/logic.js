@@ -40,6 +40,76 @@ function random_str() {
     return str
 }
 
+//临时接口，保存学生信息
+exports.saveStuInfo = function(args,callback){
+	async.waterfall([
+		function(cb){
+			console.log('dddd')
+			let search = user.findOne({})
+				search.where('xiaoyuankahao').equals(args.alias)
+				search.exec(function(err,doc){
+					if(err){
+						console.log('----- search err -----')
+						console.error(err)
+						cb(err)
+					}
+					if(!doc){
+						console.log('----- docs is existed but length is null -----')
+						console.log('docs-->',doc)
+						cb(null,null,args)
+					}
+					if(doc && doc.length != 0){
+						console.log('check docs -->',doc)
+						cb(null,doc,args)
+					}
+				})
+		},
+		function(doc,args,cb){
+			console.log('kkkkk')
+			console.log(doc)
+			console.log(args)
+			if(doc){
+				console.log('用户已存在')
+				cb(null,null)
+			}else{
+				let addUser = new user({
+					gonghao : args.user,
+					danwei : args.eduPersonOrgDN,
+					xiaoyuankahao : args.alias,
+					name : args.cn,
+					gender : args.gender,
+					containerId : args.containerId,
+					RankName : args.RankName
+				})
+				addUser.save(function(err,doc){
+					if(err){
+						console.log('----- save user fail -----')
+						console.error(err.message)
+						cb(err)
+					}else{
+						console.log('----- save use success -----')
+						console.log('new user-->',doc)
+						cb(null,doc)
+					}
+				})
+			}
+		}
+	],function(error,result){
+		if(error){
+					console.log('async error')
+					console.log(error)
+					callback(error)
+				}
+				if(!error && !result){
+					console.log('async 用户已存在')
+					callback(null,null)
+				}
+				if(result){
+					console.log('async 保存用户成功')
+					callback(null,result)
+				}
+	})
+}
 //判断用户是否存在，不存在则添加
 exports.checkUserExist_1 = function(user_1,eduPersonOrgDN,alias,cn,gender,containerId,RankName,callback){
 	async.waterfall([
@@ -305,7 +375,8 @@ exports.sgqd = function(args,callback){
 						danwei:null,
 						xiaoyuankahao:args.people_no,
 						meeting_place:args.meeting_place,
-						meeting_date_timeStamp:moment(temp_date,'YYYY-MM-DD').format('X')
+						meeting_date_timeStamp:moment(temp_date,'YYYY-MM-DD').format('X'),
+						meeting_nianji:args.meeting_nianji
 					})
 					console.log('newQiandao-->',newQiandao)
 					newQiandao.save(function(e,docs){
@@ -335,7 +406,8 @@ exports.sgqd = function(args,callback){
 						gonghao:docs.gonghao,
 						danwei:docs.danwei,
 						xiaoyuankahao:docs.xiaoyuankahao,
-						meeting_place:docs.meeting_place
+						meeting_place:docs.meeting_place,
+						meeting_nianji:args.meeting_nianji
 					})
 					console.log('newQiandao-->',newQiandao)
 					newQiandao.save(function(e,docs){
@@ -805,7 +877,8 @@ exports.baoming = function(args,callback){
 						name:info.user.name,
 						gonghao:info.user.gonghao,
 						danwei:info.user.danwei,
-						xiaoyuankahao:args.people_no
+						xiaoyuankahao:args.people_no,
+						meeting_time:info.meeting.meeting_time
 					})
 					baomingxinxi.save(function(e,d){
 						if(e){
@@ -923,7 +996,8 @@ exports.qiandao = function(args,callback){
 						name:info.user.name,
 						gonghao:info.user.gonghao,
 						danwei:info.user.danwei,
-						xiaoyuankahao:args.people_no
+						xiaoyuankahao:args.people_no,
+						meeting_time:info.meeting.meeting_time
 					})
 					qiandaoxinxi.save(function(e,d){
 						if(e){
@@ -1058,7 +1132,8 @@ exports.qiandaodongtai = function(args,callback){
 						gonghao:info.user.gonghao,
 						danwei:info.user.danwei,
 						xiaoyuankahao:args.people_no,
-						is_dynamic : '1'
+						is_dynamic : '1',
+						meeting_time:info.meeting.meeting_time
 					})
 					qiandaoxinxi.save(function(e,d){
 						if(e){
@@ -1366,6 +1441,866 @@ exports.getQianDaoDetail = function(limit,offset,randomStr,callback){
 		}
 		if(!error && result){
 			console.log('----- async final result -----')
+			callback(null,result)
+		}
+	})
+}
+
+//下载excel,已签到学生
+exports.downloadqiandao = function(randomStr,callback){
+	async.waterfall([
+		function(cb){
+			console.log('查找该会议')
+			let search = meeting.findOne({})
+				search.where('randomStr').equals(randomStr)
+				search.exec(function(err,doc){
+					if(err){
+						console.log('----- search err -----')
+						console.log(err)
+						cb(err)
+					}
+					if(!doc){
+						console.log('----- 没有相应会议 -----')
+						cb(1,'查询不到相应会议')
+					}
+					if(doc){
+						console.log('该会议是 -- >',doc)
+						cb(null,doc)
+					}
+				})
+		},
+		function(arg,cb){
+			console.log('获取签到记录总数')
+			let search = bmqd.find({})
+				search.where('randomStr').equals(randomStr)
+				search.where('qiandao').equals('1')
+				search.exec(function(err,docs){
+					if(err){
+						console.log('----- search err -----')
+						cb(err)
+					}
+					if(!docs){
+						console.log('没有查到结果')
+						cb(1,'没有签到信息')
+					}
+					if(docs){
+						console.log('签到总人数-->',docs.length)
+						cb(null,arg,docs.length)
+					}
+				})
+		},
+		function(arg,length,cb){
+				// limit = parseInt(limit)
+				// offset = parseInt(offset)
+				// let numSkip = (offset)*limit
+				// console.log('skip num is: ',numSkip)
+			let search = bmqd.find({})
+				search.where('randomStr').equals(randomStr)
+				search.where('qiandao').equals('1')
+				search.sort({'insert_timeStamp':-1})
+				// search.limit(limit)
+				// search.skip(numSkip)
+				search.exec(function(err,docs){
+					if(err){
+						console.log('----- 查询签到详情记录出错 -----')
+						console.log(err)
+						cb(err)
+					}
+					if(!docs){
+						console.log('----- 查询不到该会议的签到记录 -----')
+						cb(1,'查询不到该会议的签到记录')
+					}
+					if(docs){
+						let meeting_nianji
+						if(arg.meeting_type == '1'){
+							meeting_nianji = arg.meeting_nianji
+						}else{
+							meeting_nianji = '暂无'
+						}
+						console.log('共有多少人签到 -- > ',docs.length)
+
+						for(let i=0;i<docs.length;i++){
+							//docs[i].meeting_date = arg.meeting_date + ' ' + arg.zhouji + ' ' + arg.meeting_time
+							docs[i].meeting_nianji = meeting_nianji
+							if(docs[i].meeting_type == '1'){
+								docs[i].meeting_type = '年级会议'
+							}else{
+								docs[i].meeting_type = '非年级会议'
+							}
+						}
+						// docs = {
+						// 		 	total : length,
+						// 		 	docs : docs,
+						// 		 	offset : offset
+						// 		 }
+						cb(null,docs,arg)
+					}
+				})
+		},
+		function(docs,arg,cb){
+			//以下为将数据封装成array数组。因为下面的方法里头只接受数组。
+            let vac = new Array();
+            for (let i = 0; i < docs.length; i++) {
+                let temp = new Array();
+                temp[0] = i + 1
+                temp[1] = docs[i].name
+                temp[2] = docs[i].gonghao
+                temp[3] = docs[i].xiaoyuankahao
+                temp[4] = docs[i].meeting_nianji
+                //temp[5] = (weiqiandao_stu[i].meeting_type) == "1" ? "年级会议":"非年级会议"
+                temp[5] = docs[i].meeting_name
+                temp[6] = docs[i].meeting_type
+                temp[7] = docs[i].meeting_date + ' ' + arg.zhouji + ' ' + arg.meeting_time
+                temp[8] = docs[i].insert_time
+                vac.push(temp);
+            };
+			console.log('check vac -- >',vac)
+			let result = {}
+				result.vac = vac
+				result.meeting_name = docs[0].meeting_name + '-' + docs[0].meeting_date
+			//vac.meeting_name = docs[0].meeting_name
+			//info.vac = vac
+			cb(null,result)
+		}
+	],function(error,result){
+		if(error && error != 1){
+			console.log('----- async error -----')
+			callback(error)
+		}
+		if(error && error == 1){
+			console.log('----- async error is 1 -----')
+			callback(1,result)
+		}
+		if(!error && result){
+			console.log('----- async final result -----')
+			callback(null,result)
+		}
+	})
+}
+
+//查询学生所有签到记录
+exports.chaxunstu = function(xiaoyuankahao,callback){
+	async.waterfall([
+		function(cb){
+			let search = user.findOne({})
+				search.where('xiaoyuankahao').equals(xiaoyuankahao)
+				search.exec(function(e,doc){
+					if(e){
+						console.log('----- search err -----')
+						console.log(e)
+						cb(e)
+					}
+					if(!doc){
+						console.log('----- result is null -----')
+						cb(1,'没有该生信息')
+					}
+					if(doc){
+						console.log('check stu -- >',doc)
+						cb(null,doc)
+					}
+				})
+		},
+		function(u,cb){
+			let search = bmqd.find({})
+				search.where('xiaoyuankahao').equals(xiaoyuankahao)
+				search.where('qiandao').equals('1')
+				search.exec(function(err,docs){
+					if(err){
+						console.log('----- search err -----')
+						console.log(err)
+						cb(err)
+					}
+					if(!docs){
+						console.log('----- docs is null -----')
+						cb(1,'该生没有签到记录')
+					}
+					if(docs){
+						console.log('check docs--->',docs)
+						cb(null,docs)
+					}
+				})
+		}
+	],function(error,result){
+		if(error && error != 1){
+			console.log('async final error')
+			callback(error)
+		}
+		if(error && error == 1){
+			console.log('async final error 1')
+			callback(1,result)
+		}
+		if(!error && result){
+			console.log('async success')
+			callback(null,result)
+		}
+	})
+}
+//获取用户信息
+exports.getUserInfo = function(xiaoyuankahao,callback){
+	let search = user.findOne({})
+		search.where('xiaoyuankahao').equals(xiaoyuankahao)
+		search.exec(function(error,result){
+			if(error){
+				console.log('----- search err -----')
+				console.log(err)
+				callback(err)
+			}
+			if(!result){
+				console.log('----- result is null -----')
+				callback(1,'没有该用户')
+			}
+			if(result){
+				console.log('check user -- >',result)
+				callback(null,result)
+			}
+		})
+}
+//学生签到详情列表
+exports.getStuQianDaoDetail = function(limit,offset,xiaoyuankahao,callback){
+	limit = parseInt(limit)
+	offset = parseInt(offset)
+	let numSkip = (offset)*limit
+	console.log('skip num is: ',numSkip)
+	async.waterfall([
+		function(cb){
+			let search = bmqd.find({})
+				search.where('xiaoyuankahao').equals(xiaoyuankahao)
+				search.where('qiandao').equals('1')
+				search.exec(function(err,docs){
+					if(err){
+						console.log('----- search err -----')
+						console.log(err)
+						cb(err)
+					}
+					if(!docs){
+						console.log('----- docs is null -----')
+						cb(1,'该生没有签到记录')
+					}
+					if(docs){
+						console.log('check docs--->',docs)
+						cb(null,docs.length)
+					}
+				})
+	    },
+	    function(length,cb){
+	    	console.log('length-->',length)
+	    	console.log('offset-->',offset)
+	    	let search = bmqd.find({})
+				search.where('xiaoyuankahao').equals(xiaoyuankahao)
+				search.where('qiandao').equals('1')
+				search.limit(limit)
+				search.skip(numSkip)
+				search.exec(function(err,docs){
+					if(err){
+						console.log('----- search err -----')
+						console.log(err)
+						callback(err)
+					}
+					if(!docs){
+						console.log('----- docs is null -----')
+						callback(1,'该生没有签到记录')
+					}
+					if(docs){
+						for(let i=0;i<docs.length;i++){
+								(docs[i].meeting_type == '1') ? docs[i].meeting_type = '年级会议' : docs[i].meeting_type = '非年级会议'
+								docs[i].meeting_date = docs[i].meeting_date + ' ' + docs[i].meeting_time
+							}
+						console.log('check docs--->',docs)
+						docs = {
+							total : length,
+							offset : offset,
+							docs : docs
+						}
+						callback(null,docs)
+					}
+			})
+	    }
+	],function(error,result){
+		if(error && error != 1){
+			console.log('async final error')
+			callback(error)
+		}
+		if(error && error == 1){
+			console.log('async final error 1')
+			callback(1,result)
+		}
+		if(!error && result){
+			console.log('async success')
+			callback(null,result)
+		}
+	})
+}
+
+//未签到详情
+/*1、取出会议信息；2、根据信息查询所有符合学生；3遍历学生，找出没有签到的人*/
+exports.getWeiQianDaoDetail = function(limit,offset,randomStr,callback){
+	console.log('----- in logic getWeiQianDaoDetail')
+	let weiqiandao_stu = new Array(),
+		yiqiandao_stu = new Array()
+	async.waterfall([
+		function(cb){
+			let search = meeting.findOne({})
+				search.where('randomStr').equals(randomStr)
+				search.exec(function(err,doc){
+					if(err){
+						console.log('search err')
+						cb(err)
+					}
+					if(!doc){
+						console.log('没有该会议信息')
+						cb(1,'没有该会议信息')
+					}
+					if(doc){
+						console.log('找到该会议')
+						cb(null,doc)
+					}
+				})
+		},
+		function(doc,cb){
+			console.log('检查该会议-->',doc)
+			if(doc.meeting_type == '1'){
+				console.log('----- 年级会议 -----')
+				console.log('年级是 -- >',doc.meeting_nianji)
+				let search = user.find({},{'gonghao':1,'xiaoyuankahao':1,'name':1,'_id':1,'nianji':1})
+					search.where('nianji').equals(doc.meeting_nianji)
+					search.exec(function(err,docs){
+						if(err){
+							console.log('search err')
+							cb(err)
+						}
+						if(!docs){
+							console.log('没有签到信息')
+							cb(1,'没有签到信息')
+						}
+						if(docs){
+							console.log('该年级总共有 -- > ',docs.length,'人')
+							let info = {}
+								info.meeting_info = doc
+								info.stu = docs
+							cb(null,info)
+						}
+					})
+
+			}else{
+				console.log('----- 非年级会议 暂时不做统计 -----')
+			}
+		},
+		function(info,cb){
+			let temp_stu = info.stu
+				limit = parseInt(limit)
+				offset = parseInt(offset)
+				let numSkip = (offset)*limit
+				console.log('skip num is: ',numSkip)
+			async.eachLimit(temp_stu,10,function(item,callb){
+				let search = bmqd.findOne({})
+					search.where('qiandao').equals('1')
+					search.where('xiaoyuankahao').equals(item.xiaoyuankahao)
+					search.where('randomStr').equals(info.meeting_info.randomStr)
+					search.limit(limit)
+					search.skip(numSkip)
+					search.exec(function(e,d){
+						if(e){
+							console.log('eachLimit search err')
+							console.log(e)
+						}
+						if(!d){
+							console.log('没有签到记录，push进数组')
+							console.log(item)
+							weiqiandao_stu.push(item)
+							callb()
+						}
+						if(d){
+							console.log('有签到记录')
+							yiqiandao_stu.push(item)
+							callb()
+						}
+					})
+			},function(err){
+				if(err){
+					console.log('async eachLimit err')
+					console.log(err)
+					cb(err)
+				}
+				else{
+					console.log('async eachLimit done')
+					console.log('没签到人数 -- >',weiqiandao_stu.length)
+					console.log('已签到人数 -- >',yiqiandao_stu.length)
+					cb(null,weiqiandao_stu,info)
+				}
+			})
+		},
+		function(weiqiandao_stu,info,cb){
+			for(let i=0;i<weiqiandao_stu.length;i++){
+				weiqiandao_stu[i].meeting_name = info.meeting_info.meeting_name
+				weiqiandao_stu[i].meeting_date = info.meeting_info.meeting_date
+				//console.log(weiqiandao_stu[i].meeting_name)
+				if(info.meeting_info.meeting_type == '1'){
+					//console.log('ddddddd')
+					weiqiandao_stu[i].meeting_type = '年级会议'
+				}
+				else{
+					weiqiandao_stu[i].meeting_type = '非年级会议'
+				}
+				weiqiandao_stu[i].insert_time = '未签到'
+				//console.log(weiqiandao_stu[i])
+			}
+			//console.log('check weiqiandao_stu -- >',weiqiandao_stu)
+			info.weiqiandao_stu = weiqiandao_stu
+			info.total = weiqiandao_stu.length
+			info.offset = offset
+			console.log(weiqiandao_stu)
+			cb(null,info)
+		}
+	],function(error,result){
+		if(error && error != 1){
+			console.log('async final error')
+			console.log(error)
+			callback(error)
+		}
+		if(error && error == 1){
+			console.log('async final error')
+			console.log(result)
+			callback(1,result)
+		}
+		if(!error && result){
+			console.log('async finish')
+			console.log(result)
+			callback(null,result)
+		}
+	})
+}
+
+//下载excel，未签到学生名单
+exports.downloadweiqiandao = function(randomStr,callback){
+	console.log('check randomStr ---> ',randomStr)
+	let weiqiandao_stu = new Array(),
+		yiqiandao_stu = new Array()
+	async.waterfall([
+		function(cb){
+			let search = meeting.findOne({})
+				search.where('randomStr').equals(randomStr)
+				search.exec(function(err,doc){
+					if(err){
+						console.log('search err')
+						cb(err)
+					}
+					if(!doc){
+						console.log('没有该会议信息')
+						cb(1,'没有该会议信息')
+					}
+					if(doc){
+						console.log('找到该会议')
+						cb(null,doc)
+					}
+				})
+		},
+		function(doc,cb){
+			console.log('检查该会议-->',doc)
+			if(doc.meeting_type == '1'){
+				console.log('----- 年级会议 -----')
+				console.log('年级是 -- >',doc.meeting_nianji)
+				let search = user.find({},{'gonghao':1,'xiaoyuankahao':1,'name':1,'_id':1,'nianji':1})
+					search.where('nianji').equals(doc.meeting_nianji)
+					search.exec(function(err,docs){
+						if(err){
+							console.log('search err')
+							cb(err)
+						}
+						if(!docs){
+							console.log('没有签到信息')
+							cb(1,'没有签到信息')
+						}
+						if(docs){
+							console.log('该年级总共有 -- > ',docs.length,'人')
+							let info = {}
+								info.meeting_info = doc
+								info.stu = docs
+							cb(null,info)
+						}
+					})
+
+			}else{
+				console.log('----- 非年级会议 暂时不做统计 -----')
+			}
+		},
+		function(info,cb){
+			 let temp_stu = info.stu
+			// 	limit = parseInt(limit)
+			// 	offset = parseInt(offset)
+			// 	let numSkip = (offset)*limit
+			// 	console.log('skip num is: ',numSkip)
+			async.eachLimit(temp_stu,10,function(item,callb){
+				let search = bmqd.findOne({})
+					search.where('qiandao').equals('1')
+					search.where('xiaoyuankahao').equals(item.xiaoyuankahao)
+					search.where('randomStr').equals(info.meeting_info.randomStr)
+					//search.limit(limit)
+					//search.skip(numSkip)
+					search.exec(function(e,d){
+						if(e){
+							console.log('eachLimit search err')
+							console.log(e)
+						}
+						if(!d){
+							console.log('没有签到记录，push进数组')
+							console.log(item)
+							weiqiandao_stu.push(item)
+							callb()
+						}
+						if(d){
+							console.log('有签到记录')
+							yiqiandao_stu.push(item)
+							callb()
+						}
+					})
+			},function(err){
+				if(err){
+					console.log('async eachLimit err')
+					console.log(err)
+					cb(err)
+				}
+				else{
+					console.log('async eachLimit done')
+					console.log('没签到人数 -- >',weiqiandao_stu.length)
+					console.log('已签到人数 -- >',yiqiandao_stu.length)
+					cb(null,weiqiandao_stu,info)
+				}
+			})
+		},
+		function(weiqiandao_stu,info,cb){
+			//以下为将数据封装成array数组。因为下面的方法里头只接受数组。
+            let vac = new Array();
+            for (let i = 0; i < weiqiandao_stu.length; i++) {
+                let temp = new Array();
+                temp[0] = i + 1
+                temp[1] = weiqiandao_stu[i].name
+                temp[2] = weiqiandao_stu[i].gonghao
+                temp[3] = weiqiandao_stu[i].xiaoyuankahao
+                temp[4] = weiqiandao_stu[i].nianji
+                //temp[5] = (weiqiandao_stu[i].meeting_type) == "1" ? "年级会议":"非年级会议"
+                temp[5] = weiqiandao_stu[i].insert_time = '未签到'
+                vac.push(temp);
+            };
+			console.log('check vac -- >',vac)
+			// info.weiqiandao_stu = weiqiandao_stu
+			// //info.total = weiqiandao_stu.length
+			// //info.offset = offset
+			// console.log(weiqiandao_stu)
+			info.vac = vac
+			cb(null,info)
+		}
+	],function(error,result){
+		if(error && error != 1){
+			console.log('async final error')
+			console.log(error)
+			callback(error)
+		}
+		if(error && error == 1){
+			console.log('async final error')
+			console.log(result)
+			callback(1,result)
+		}
+		if(!error && result){
+			console.log('async finish')
+			//console.log(result)
+			callback(null,result)
+		}
+	})
+}
+
+//学生签到统计
+exports.studentStatic = function(xiaoyuankahao,callback){
+	console.log('学生签到统计')
+	let time = moment().format('YYYY-MM-DD')
+		console.log('check time --> ',time)
+	let timeArr = time.split('-'),
+		temp_year = timeArr[0],
+		year = parseInt(temp_year),
+		temp_month = timeArr[1],//09
+		month = parseInt(temp_month)
+		console.log('check year && month --> ',year,month)
+
+	async.waterfall([
+		function(cb){
+			if((9 <= month <= 12) || month == 1){
+				if(month == 1){
+					console.log('1月份')
+					let timeStr = (year-1) + '-09-01',
+						beginTImeStamp = moment(timeStr,'YYYY-MM-DD').format('X'),
+						nowTImeStamp = moment().format('X') 
+						console.log('check begindate',timeStr)
+						console.log('check beginTImeStamp && nowTImeStamp -->',beginTImeStamp,nowTImeStamp)
+						let search = meeting.find({})
+						search.where('meeting_date_timeStamp').gte(beginTImeStamp)
+						search.where('meeting_date_timeStamp').lte(nowTImeStamp)
+						search.exec(function(err,docs){
+							if(err){
+								console.log('search err')
+								cb(err)
+							}
+							if(!docs){
+								console.log('no meetings')
+								cb(1,'没有会议')
+							}
+							if(docs){
+								console.log('总会议数-->',docs.length)
+								let num_nianjihuiyi = 0,
+									num_feinianjihuiyi = 0
+								for(let i=0;i<docs.length;i++){
+									if(docs[i].meeting_type == '1'){
+										num_nianjihuiyi++
+									}else{
+										num_feinianjihuiyi++
+									}
+								}
+								console.log('年级会议数量 && 非年级会议数量--',num_nianjihuiyi,num_feinianjihuiyi)
+								let huiyi_info = {
+									huiyi : docs,
+									huiyizongshu : docs.length,
+									nianjihuiyishu : num_nianjihuiyi,
+									feinianjihuiyishu : num_feinianjihuiyi
+								}
+								cb(null,huiyi_info)
+							}
+						})
+				}else{
+					console.log('9-12月份')
+					//开始时间戳2017-09-01到当前时间戳
+					let timeStr = year + '-' + temp_month + '-' + '01',
+						beginTImeStamp = moment(timeStr,'YYYY-MM-DD').format('X'),
+						nowTImeStamp = moment().format('X') 
+						console.log('check begindate',timeStr)
+					console.log('check beginTImeStamp && nowTImeStamp -->',beginTImeStamp,nowTImeStamp)
+					let search = meeting.find({})
+						search.where('meeting_date_timeStamp').gte(beginTImeStamp)
+						search.where('meeting_date_timeStamp').lte(nowTImeStamp)
+						search.exec(function(err,docs){
+							if(err){
+								console.log('search err')
+								cb(err)
+							}
+							if(!docs){
+								console.log('no meetings')
+								cb(1,'没有会议')
+							}
+							if(docs){
+								console.log('总会议数-->',docs.length)
+								let num_nianjihuiyi = 0,
+									num_feinianjihuiyi = 0
+								for(let i=0;i<docs.length;i++){
+									if(docs[i].meeting_type == '1'){
+										num_nianjihuiyi++
+									}else{
+										num_feinianjihuiyi++
+									}
+								}
+								console.log('年级会议数量 && 非年级会议数量-->',num_nianjihuiyi,num_feinianjihuiyi)
+								let huiyi_info = {
+									huiyi : docs,
+									huiyizongshu : docs.length,
+									nianjihuiyishu : num_nianjihuiyi,
+									feinianjihuiyishu : num_feinianjihuiyi
+								}
+								cb(null,huiyi_info)
+							}
+						})
+				}
+			}else{
+				console.log('2-7月份')
+				//开始时间戳2017-02-01到当前时间戳
+					let timeStr = year + '-' + temp_month + '-' + '01',
+						beginTImeStamp = moment(timeStr,'YYYY-MM-DD').format('X'),
+						nowTImeStamp = moment().format('X') 
+						console.log('check begindate',timeStr)
+					console.log('check beginTImeStamp && nowTImeStamp -->',beginTImeStamp,nowTImeStamp)
+					let search = meeting.find({})
+						search.where('meeting_date_timeStamp').gte(beginTImeStamp)
+						search.where('meeting_date_timeStamp').lte(nowTImeStamp)
+						search.exec(function(err,docs){
+							if(err){
+								console.log('search err')
+								cb(err)
+							}
+							if(!docs){
+								console.log('no meetings')
+								cb(1,'没有会议')
+							}
+							if(docs){
+								console.log('总会议数-->',docs.length)
+								let num_nianjihuiyi = 0,
+									num_feinianjihuiyi = 0
+								for(let i=0;i<docs.length;i++){
+									if(docs[i].meeting_type == '1'){
+										num_nianjihuiyi++
+									}else{
+										num_feinianjihuiyi++
+									}
+								}
+								console.log('年级会议数量 && 非年级会议数量--',num_nianjihuiyi,num_feinianjihuiyi)
+								let huiyi_info = {
+									huiyi : docs,
+									huiyizongshu : docs.length,
+									nianjihuiyishu : num_nianjihuiyi,
+									feinianjihuiyishu : num_feinianjihuiyi
+								}
+								cb(null,huiyi_info)
+							}
+						})
+			}
+		},
+		function(huiyi_info,cb){
+			//查询学生签到情况
+			if((9 <= month <= 12) || month == 1){
+				if(month == 1){
+					console.log('1月份')
+					let timeStr = (year-1) + '-09-01',
+						beginTImeStamp = moment(timeStr,'YYYY-MM-DD').format('X'),
+						nowTImeStamp = moment().format('X') 
+						console.log('check begindate',timeStr)
+						console.log('check beginTImeStamp && nowTImeStamp -->',beginTImeStamp,nowTImeStamp)
+						let search = bmqd.find({})
+						search.where('insert_timeStamp').gte(beginTImeStamp)
+						search.where('insert_timeStamp').lte(nowTImeStamp)
+						search.where('qiandao').equals('1')
+						search.where('xiaoyuankahao').equals(xiaoyuankahao)
+						search.exec(function(err,docs){
+							if(err){
+								console.log('search err')
+								cb(err)
+							}
+							if(!docs){
+								console.log('no meetings')
+								cb(1,'没有签到记录')
+							}
+							if(docs){
+								console.log('学生签到总会议数-->',docs.length)
+								let num_nianjihuiyi = 0,
+									num_feinianjihuiyi = 0
+								for(let i=0;i<docs.length;i++){
+									if(docs[i].meeting_type == '1'){
+										num_nianjihuiyi++
+									}else{
+										num_feinianjihuiyi++
+									}
+								}
+								console.log('签到 年级会议数 && 非年级会议数--',num_nianjihuiyi,num_feinianjihuiyi)
+								let stuqiandao_info = {
+									huiyi_info:huiyi_info,
+									huiyi : docs,
+									huiyizongshu : docs.length,
+									nianjihuiyishu : num_nianjihuiyi,
+									feinianjihuiyishu : num_feinianjihuiyi,
+									xueqi : year + '至' + (year+1) + '学年第一学期'
+								}
+								cb(null,stuqiandao_info)
+							}
+						})
+				}else{
+					console.log('9-12月份')
+					//开始时间戳2017-09-01到当前时间戳
+					let timeStr = year + '-' + temp_month + '-' + '01',
+						beginTImeStamp = moment(timeStr,'YYYY-MM-DD').format('X'),
+						nowTImeStamp = moment().format('X') 
+						console.log('check begindate',timeStr)
+					console.log('check beginTImeStamp && nowTImeStamp -->',beginTImeStamp,nowTImeStamp)
+					let search = bmqd.find({})
+						search.where('insert_timeStamp').gte(beginTImeStamp)
+						search.where('insert_timeStamp').lte(nowTImeStamp)
+						search.where('qiandao').equals('1')
+						search.where('xiaoyuankahao').equals(xiaoyuankahao)
+						search.exec(function(err,docs){
+							if(err){
+								console.log('search err')
+								cb(err)
+							}
+							if(!docs){
+								console.log('no meetings')
+								cb(1,'没有会议')
+							}
+							if(docs){
+								console.log('学生签到总会议数-->',docs.length)
+								let num_nianjihuiyi = 0,
+									num_feinianjihuiyi = 0
+								for(let i=0;i<docs.length;i++){
+									if(docs[i].meeting_type == '1'){
+										num_nianjihuiyi++
+									}else{
+										num_feinianjihuiyi++
+									}
+								}
+								console.log('学生 年级会议数 && 非年级会议数-->',num_nianjihuiyi,num_feinianjihuiyi)
+								let stuqiandao_info = {
+									huiyi_info:huiyi_info,
+									huiyi : docs,
+									huiyizongshu : docs.length,
+									nianjihuiyishu : num_nianjihuiyi,
+									feinianjihuiyishu : num_feinianjihuiyi,
+									xueqi : year + '至' + (year+1) + '学年第一学期'
+								}
+								cb(null,stuqiandao_info)
+							}
+						})
+				}
+			}else{
+				console.log('2-7月份')
+				//开始时间戳2017-02-01到当前时间戳
+					let timeStr = year + '-' + temp_month + '-' + '01',
+						beginTImeStamp = moment(timeStr,'YYYY-MM-DD').format('X'),
+						nowTImeStamp = moment().format('X') 
+						console.log('check begindate',timeStr)
+					console.log('check beginTImeStamp && nowTImeStamp -->',beginTImeStamp,nowTImeStamp)
+					let search = bmqd.find({})
+						search.where('insert_timeStamp').gte(beginTImeStamp)
+						search.where('insert_timeStamp').lte(nowTImeStamp)
+						search.where('qiandao').equals('1')
+						search.where('xiaoyuankahao').equals(xiaoyuankahao)
+						search.exec(function(err,docs){
+							if(err){
+								console.log('search err')
+								cb(err)
+							}
+							if(!docs){
+								console.log('no meetings')
+								cb(1,'没有签到记录')
+							}
+							if(docs){
+								console.log('学生签到总会议数-->',docs.length)
+								let num_nianjihuiyi = 0,
+									num_feinianjihuiyi = 0
+								for(let i=0;i<docs.length;i++){
+									if(docs[i].meeting_type == '1'){
+										num_nianjihuiyi++
+									}else{
+										num_feinianjihuiyi++
+									}
+								}
+								console.log('学生签到 年级会议数 && 非年级会议数-->',num_nianjihuiyi,num_feinianjihuiyi)
+								let stuqiandao_info = {
+									huiyi_info:huiyi_info,
+									huiyi : docs,
+									huiyizongshu : docs.length,
+									nianjihuiyishu : num_nianjihuiyi,
+									feinianjihuiyishu : num_feinianjihuiyi,
+									xueqi : year + '至' + (year+1) + '学年第二学期'
+								}
+								cb(null,stuqiandao_info)
+							}
+						})
+			}
+		}
+	],function(error,result){
+		if(error && error != 1){
+			console.log('async error')
+			console.log(error)
+			callback(error)
+		}
+		else if(error && error == 1){
+			console.log('async error result -->',result)
+			callback(1,result)
+		}
+		else{
+			console.log('async end')
+			console.log(result)
 			callback(null,result)
 		}
 	})

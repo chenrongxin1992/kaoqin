@@ -351,6 +351,9 @@
           $("#meeting_place").empty()
           $("#code").empty()
           $('#image').empty()
+          //$('#a_link').empty()
+          ///$('#gallery').empty()
+          //$('#wrapper').empty()
           $(".poptrox-overlay").remove()
 
           for(let i=0; i<temp_result.length; i++){
@@ -374,6 +377,7 @@
             }
           }
           if(temp_meetingName == 'select'){
+            console.log('切换选择，清除缓存')
               $("#meeting_date_time").append("<p>"+'暂无信息'+"</p>");
               $("#meeting_des").append("<p>"+'暂无信息' + "</p>");
               $("#meeting_place").append("<p>"+'暂无信息' + "</p>");
@@ -413,7 +417,7 @@
         let randomStr = $('#randomStr option:selected').val()
         console.log('点击报名按钮，会议的随机码是-->',randomStr)
         //116.13.96.53:81
-        let baomingUrl = 'http://qiandao.szu.edu.cn:81/front/baoming/?r=' + randomStr + '&b=1'
+        let baomingUrl = 'http://qiandao.szu.edu.cn:81/front/baoming/?r=' + randomStr 
         console.log('点击报名按钮，报名链接是-->',baomingUrl)
         $("#code").qrcode({ 
             background : '#F0F8FF',

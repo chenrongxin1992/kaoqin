@@ -5,7 +5,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <!-- 上述3个meta标签*必须*放在最前面，任何其他内容都*必须*跟随其后！ -->
-    <title>数据查询</title>
+    <title>会议签到详情</title>
 
     <!-- Bootstrap -->
     <link rel="stylesheet" href="http://cdn.bootcss.com/bootstrap/3.3.2/css/bootstrap.min.css">
@@ -64,13 +64,6 @@
       .footer{
         text-align: center;
       }
-      /*a{
-        font-size: 18px;
-      }
-      a:hover{
-        font-size: 20px;
-        text-decoration:none
-      }*/
       .uniform{
         padding: 15px 15px;
       }
@@ -144,6 +137,13 @@
       th,td{
         text-align: center;
       }
+      th{
+        background-color: rgb(222,243,222);
+      }
+      .fixed-table-container {
+        height: auto !important;
+        padding-bottom: 0 !important;
+      }
 
 
     </style>
@@ -161,53 +161,15 @@
 
       <div class="row-fluid cancelPadding">
         <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 ">
-          <p class="text-center head"><span class="glyphicon glyphicon-search"></span> 数据查询</p>
+          <p class="text-center head" id="unsigned"> 未签到名单</p>
+          <p class="pull-right"><a href='/front/downloadweiqiandao?r=<%=randomStr%>' target="_self">下载未签到记录</a></p>
         </div>
       </div>
 
       <div class="row-fluid cancelPadding">
         <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 ">
           <div class="panel-body table-body cancelPadding" >
-            <div class="panel panel-default">
-              <div class="panel-heading" style="text-align: center;">已举行会议</div>
-                  <div class="panel-body">
-                    <form id="formSearch" class="form-horizontal">
-                        <div class="form-group" style="margin-top:15px">
-                              <label class="control-label col-lg-1 col-md-1 col-sm-6 col-xs-12" for="b_time">开始日期</label>
-                              <div class="col-lg-2 col-md-2 col-sm-6 col-xs-12">
-                                <input class="form-control" type="text" value="" id="b_time">          
-                              </div>
-                              <label class="control-label col-lg-1 col-md-1 col-sm-6 col-xs-12" for="e_time">结束日期</label>
-                              <div class="col-lg-2 col-md-2 col-sm-6 col-xs-12">
-                                <input type="text" class="form-control" id="e_time">
-                              </div>
-                              <label class="control-label col-lg-1 col-md-1 col-sm-6 col-xs-12" for="applier">会议类别</label>
-                              <div class="col-lg-1 col-md-1 col-sm-6 col-xs-12" style="text-align:left;">
-                                <select id="meeting_type" class="selectpicker" data-hide-disabled="true" data-live-search="false">
-                                  <option>非年级会议</option><option>年级会议</option>
-                                </select>
-                              </div>
-                              <div class="col-lg-4 col-md-4 col-sm-4 col-xs-12 searchBtn" style="">
-                                <button type="button" style="" id="btn_query" class="btn btn-primary ">查询</button>
-                              </div>
-                        </div>
-                      </form>
-                  </div>
-            </div>
-
-                    <div id="toolbar" class="btn-group">
-                        <!-- <button id="btn_add" type="button" class="btn btn-default">
-                            <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>新增
-                        </button>
-                        <button id="btn_edit" type="button" class="btn btn-default">
-                            <span class="glyphicon glyphicon-pencil" aria-hidden="true"></span>审批
-                        </button> -->
-                        <!-- <button id="btn_delete" type="button" class="btn btn-default">
-                            <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>删除
-                        </button> -->
-                    </div>
-
-                    <table id="tb_departments"></table>
+                <table id="tb_departments"></table>
           </div>
         </div>
       </div>
@@ -228,23 +190,6 @@
     <!-- 模态框 -->
     <!-- Button trigger modal -->
     <!-- Modal -->
-    <div class="modal fade modal-msg" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel" id="data-modal">
-    <div class="modal-dialog modal-md modal-xs" role="document">
-      <div class="modal-content">
-        <div class="modal-header">
-          <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-          <h4 class="modal-title" id="gridSystemModalLabel">创建结果</h4>
-        </div>
-        <div class="modal-body">
-
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-success sure" data-dismiss="modal" id="result-sure">确定</button>
-          <button type="button" class="btn btn-default sure" data-dismiss="modal" id="result-qrcode">生成二维码</button>
-        </div>
-      </div>
-    </div>
-  </div>
 
   <div class="modal fade alert-modal" tabindex="-1" role="dialog" aria-labelledby="myLargeModalLabel" id="alert-modal">
     <div class="modal-dialog modal-sm" role="document">
@@ -269,12 +214,7 @@
     <script src="http://cdn.bootcss.com/jquery/1.11.2/jquery.min.js"></script>
     <script src="http://cdn.bootcss.com/bootstrap/3.3.2/js/bootstrap.min.js"></script>
     <script type="text/javascript" src='/javascripts/moment-with-locales.min.js' ></script>
-    <script type="text/javascript" src='/javascripts/bootstrap-datetimepicker.js' ></script>
-    <script type="text/javascript" src='/javascripts/bootstrap-datetimepicker.zh-CN.js' ></script>
-    <script type="text/javascript" src='/javascripts/bootstrap-select.js' ></script>
-    <script type="text/javascript" src='/javascripts/bootstrapValidator.min.js' ></script>
     <script type="text/javascript" src='/javascripts/bootstrap-switch.min.js' ></script>
-    <script type="text/javascript" src='/javascripts/jquery.poptrox.min.js' ></script>
     <script type="text/javascript" src="/javascripts/bootstrap-table.min.js"></script>
     <script type="text/javascript" src="/javascripts/bootstrap-table-zh-CN.js"></script>
     <script type="text/javascript">
@@ -284,58 +224,11 @@
     jQuery.browser={};(function(){jQuery.browser.msie=false; 
     jQuery.browser.version=0;if(navigator.userAgent.match(/MSIE ([0-9]+)./)){ jQuery.browser.msie=true;jQuery.browser.version=RegExp.$1;}})();
        $(function() {
-        $("#b_time").datetimepicker({
-          minView: "month",//设置只显示到月
-          format: "yyyy-mm-dd",
-          autoclose: true,
-          todayBtn: true,
-          language:'zh-CN',
-          pickerPosition:"bottom-left",
-          endDate : new Date() 
-        });
-        $("#e_time").datetimepicker({
-          minView: "month",//设置只显示到月
-          format: "yyyy-mm-dd",
-          autoclose: true,
-          todayBtn: true,
-          language:'zh-CN',
-          pickerPosition:"bottom-left",
-          endDate : new Date() 
-        });
-        //查询
-        $('#btn_query').on('click',function(){
-            var b_time = $('#b_time').val(),
-                e_time = $('#e_time').val(),
-                meeting_type = $('#meeting_type').val()
-            if(!b_time || typeof b_time == 'undefined'){
-                console.log('b_time is null')
-            }
-            if(!e_time || typeof e_time == 'undefined'){
-                console.log('e_time is null ')
-            }
-            if(!meeting_type || typeof meeting_type == 'undefined'){
-              console.log('meeting_type is null')
-            }
-            if(b_time || e_time || meeting_type){
-                console.log('check b_time & e_time & meeting_type',b_time,e_time,meeting_type)
-                var b_time_arr = b_time.split('-')
-                    e_time_arr = e_time.split('-')
-                if(b_time_arr[1] > e_time_arr[1]){
-                    $('.alert-modal').modal('show')
-                    $('.modal-body').text('开始时间月份不能大于结束时间月份！')
-                    return 
-                }
-                if((b_time_arr[1] > e_time_arr[1]) && (b_time_arr[2] > e_time_arr[2])){
-                    $('.alert-modal').modal('show')
-                    $('.modal-body').text('开始日期不能大于结束日期！')
-                    return 
-                }
-                $('#tb_departments').bootstrapTable('refresh');
-                return
-            }else{
-              $('#tb_departments').bootstrapTable('refresh');
-            }
-        })
+        let temp_result = '<%- JSON.stringify(meeting_info) %>'
+          temp_result = temp_result.replace(/\n/g,'<br />')
+              temp_result = JSON.parse(temp_result);
+          console.log('temp_result-->',temp_result)
+        $('#unsigned').text(temp_result.meeting_name + ' 会议未签到名单')
         //清楚缓存
         $(".alert-modal").on("hidden.bs.modal", function() {
               console.log('---- here ----')
@@ -361,9 +254,9 @@
             //初始化Table
             oTableInit.Init = function () {
                 $('#tb_departments').bootstrapTable({             
-                    url: '/front/meetingRecord',         //请求后台的URL（*）
+                    url: '/front/weiqiandao_API',         //请求后台的URL（*）
                     method: 'get',                      //请求方式（*）
-                    toolbar: '#toolbar',                //工具按钮用哪个容器
+                    //toolbar: '#toolbar',                //工具按钮用哪个容器
                     striped: false,                      //是否显示行间隔色
                     cache: false,                       //是否使用缓存，默认为true，所以一般情况下需要设置一下这个属性（*）
                     pagination: true,                   //是否显示分页（*）
@@ -372,52 +265,51 @@
                     queryParams: oTableInit.queryParams,//传递参数（*）
                     sidePagination: "server",           //分页方式：client客户端分页，server服务端分页（*）
                     pageNumber:1,                       //初始化加载第一页，默认第一页
-                    pageSize: 10,                       //每页的记录行数（*）
-                    pageList: [10, 25],        //可供选择的每页的行数（*）
+                    pageSize: 20,                       //每页的记录行数（*）
+                    pageList: [20,30,50],                 //可供选择的每页的行数（*）
                     search: false,                       //是否显示表格搜索，此搜索是客户端搜索，不会进服务端，所以，个人感觉意义不大
                     strictSearch: false,
-                    showColumns: true,                  //是否显示所有的列
-                    showRefresh: true,                  //是否显示刷新按钮
+                    showColumns: false,                  //是否显示所有的列
+                    showRefresh: false,                  //是否显示刷新按钮
                     minimumCountColumns: 2,             //最少允许的列数
-                    clickToSelect: true,                //是否启用点击选中行
+                    clickToSelect: false,                //是否启用点击选中行
                     height: 500,                        //行高，如果没有设置height属性，表格自动根据记录条数觉得表格高度
                     uniqueId: "ID",                     //每一行的唯一标识，一般为主键列
                     showToggle:false,                    //是否显示详细视图和列表视图的切换按钮
                     cardView: false,                    //是否显示详细视图
                     detailView: false,                   //是否显示父子表
                     columns: [{
-                        checkbox: true
-                    }, {
-                        field: 'meeting_name',
-                        title: '会议名称'
-                    }, {
-                        field: 'meeting_date',
-                        title: '会议日期'
+                        field: 'xuhao',
+                        title: '序号',
+                        formatter: function (value, row, index) {
+                            return index+1;
+                        }
                     },{
-                        field: 'meeting_time',
-                        title: '会议时间'
+                        field: 'name',
+                        title: '姓名'
                     }, {
-                        field: 'meeting_des',
-                        title: '会议内容'
+                        field: 'gonghao',
+                        title: '学号'
                     },{
-                        field: 'meeting_type',
-                        title: '会议类型'
+                        field: 'xiaoyuankahao',
+                        title: '校园卡号'
                     },{
-                        field: 'meeting_nianji',
+                        field: 'nianji',
                         title: '年级'
                     },{
-                        field: 'apply_time',
-                        title: '申请时间'
+                        field: 'insert_time',
+                        title: '签到时间'
                     },{
                         title: '操作',
-                        field: '_id',
+                        field: 'xiaoyuankahao',
                         align: 'center',
                         formatter:function(value,row,index){  
                           console.log('value -- >',value)
                           console.log('row -- >',row)
                           console.log('index -- >',index)
-                             var e = '<a href="/front/qiandaoDetail?randomStr='+row.randomStr+'">查看签到详情</a> ';  
-                          return e;  
+                             var e = '<a href="/front/studentStatic?xiaoyuankahao='+row.xiaoyuankahao+'">查看签到统计</a> ';  
+                             var d = '<a href="/front/chaxunstutable?xiaoyuankahao='+row.xiaoyuankahao+'">该生签到详情</a> '
+                          return e + d;  
                       } 
                     }]
                 })
@@ -428,12 +320,14 @@
                 var temp = {   //这里的键的名字和控制器的变量名必须一直，这边改动，控制器也需要改成一样的
                     limit: params.limit,   //页面大小
                     offset: params.offset,  //页码
+                    search : $('.form-control').val()
                     /*departmentname: $("#txt_search_departmentname").val(),
                     statu: $("#txt_search_statu").val()*/
-                    begin_date : $('#b_time').val(),
-                    end_date : $('#e_time').val(),
-                    meeting_type : $('#meeting_type').val()
+                    //begin_date : $('#b_time').val(),
+                    //end_date : $('#e_time').val(),
+                    //meeting_type : $('#meeting_type').val()
                 };
+                console.log('查询参数-->',temp)
                 return temp;
             };
             return oTableInit;
