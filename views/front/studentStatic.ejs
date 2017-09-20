@@ -10,11 +10,6 @@
     <!-- Bootstrap -->
     <link rel="stylesheet" href="http://cdn.bootcss.com/bootstrap/3.3.2/css/bootstrap.min.css">
     <link rel='stylesheet' href='/stylesheets/style.css' />
-    <link rel='stylesheet' href='/stylesheets/bootstrap-select.css' />
-    <link rel='stylesheet' href='/stylesheets/bootstrapValidator.min.css' />
-    <link rel='stylesheet' href='/stylesheets/bootstrap-switch.min.css' />
-    <link rel="stylesheet" href="/stylesheets/bootstrap-table.min.css" >
-    <link rel='stylesheet' href='/stylesheets/bootstrap-datetimepicker.css' />
     <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
     <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
     <!--[if lt IE 9]>
@@ -305,11 +300,18 @@
             xsqdhy_feinianji = '<%- data.feinianjihuiyishu %>',//学生签到会议（非年级）
             xsqdhy_zongshu = '<%- data.huiyizongshu %>'
 
+        let xsqdhy_ratenj = null,
+            xsqdhy_ratefnj = null
         if(jubanhuiyi_feinianji == 0){
-          jubanhuiyi_feinianji = 1
+          xsqdhy_ratefnj = 0
+        }else{
+          xsqdhy_ratefnj = changeTwoDecimal_f(xsqdhy_feinianji/jubanhuiyi_feinianji)
         }
-        let xsqdhy_ratenj = changeTwoDecimal_f(xsqdhy_nianji/jubanhuiyi_nianji),
-            xsqdhy_ratefnj = changeTwoDecimal_f(xsqdhy_feinianji/jubanhuiyi_feinianji)
+        if(jubanhuiyi_nianji == 0){
+          xsqdhy_ratenj = 0
+        }else{
+          xsqdhy_ratenj = changeTwoDecimal_f(xsqdhy_nianji/jubanhuiyi_nianji)
+        }
         console.log('check num --> ',jubanhuiyi_nianji,jubanhuiyi_feinianji)
         console.log('check stu_num --> ',xsqdhy_nianji,xsqdhy_feinianji,)
         $('#jxhy_zongshu').val(jubanhuiyi_zongshu + ' 次')

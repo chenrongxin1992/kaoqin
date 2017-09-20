@@ -9,26 +9,6 @@ const user = require('../db/user')
 const async = require('async')
 const moment = require('moment')
 moment.locale('zh-cn')
-// const chunk =require("lodash/chunk")
-// const nodemailer = require('nodemailer')
-// const applyTwo = require('../db/applyTwo')
-//邮件配置
-// var config_email = {
-// 	host : 'smtp.qq.com',
-// 	secureConnection: true,
-// 	auth : {
-// 		user : '848536190@qq.com',
-// 		pass : 'eerjruzzkiaxbfcg'
-// 	}
-// }
-// var transporter = nodemailer.createTransport(config_email)
-// //邮件内容
-// var data = {
-// 	from : '848536190@qq.com',
-// 	to : '',
-// 	subject : '计算机与软件学院 会议室申请结果 通知',
-// 	html : ''
-// }
 
 //随机生成字符串
 /*
@@ -110,6 +90,7 @@ exports.saveStuInfo = function(args,callback){
 				}
 	})
 }
+
 //判断用户是否存在，不存在则添加
 exports.checkUserExist_1 = function(user_1,eduPersonOrgDN,alias,cn,gender,containerId,RankName,callback){
 	async.waterfall([
@@ -279,7 +260,6 @@ exports.adduser = function(callback){
 		}
 	})
 }
-
 
 //手工签到
 exports.sgqd = function(args,callback){
@@ -669,6 +649,141 @@ exports.getMeetingDetail_2 = function(args,callback){
 	})
 }
 
+//签到逻辑（post请求到达）
+exports.qiandao = function(args,callback){
+	async.waterfall([
+		//获取用户信息和会议详情
+		function(cb){
+			let search = user.findOne({})
+				search.where('xiaoyuankahao').equals(args.people_no)
+				search.exec(function(err,doc){
+					if(err){
+						console.log('----- search err -----')
+						console.error(err)
+						cb(err)
+					}
+					if(!doc){
+						console.log('----- 用户不存在 -----')
+						cb(1,'用户不存在')
+					}
+					if(doc && doc.length == 0){
+						console.log('----- 用户不存在 -----')
+						cb(1,'用户不存在')
+					}
+					if(doc && doc.length != 0){
+						console.log('----- 用户存在 -----')
+						console.log(doc)
+						cb(null,doc)
+					}
+				})
+		},
+		//获取会议详情
+		function(arg,cb){
+			let search = meeting.findOne({})
+				search.where('randomStr').equals(args.randomStr)
+				search.exec(function(err,doc){
+					if(err){
+						console.log('----- search err -----')
+						console.error(err)
+						cb(err)
+					}
+					if(!doc){
+						console.log('----- 没有该会议信息 -----')
+						cb(1,'没有会议信息')
+					}
+					if(doc){
+						console.log('----- 会议存在 -----')
+						console.log(doc)
+						let info = {}
+							info.user = arg
+							info.meeting = doc
+						cb(null,info)
+					}
+				})
+		},
+		//检查是否存在记录
+		function(info,cb){
+			console.log('check info -->',info)
+			let search = bmqd.findOne({})
+				search.where('randomStr').equals(args.randomStr)
+				search.where('xiaoyuankahao').equals(args.people_no)
+				search.where('baoming').gte('0')
+				//search.where('qiandao').equals('1')
+			search.exec(function(err,doc){
+				if(err){
+					console.log('----- search err -----')
+					console.error(err)
+					cb(err)
+				}
+				if(!doc){
+					console.log('----- 没有记录，直接插入新纪录 -----')
+					//新插入
+					let qiandaoxinxi = new bmqd({
+						meeting_nianji:info.meeting.meeting_nianji,
+						meeting_type:info.meeting.meeting_type,
+						meeting_name:info.meeting.meeting_name,
+						meeting_place:info.meeting.meeting_place,
+						meeting_des:info.meeting.meeting_des,
+						meeting_date:info.meeting.meeting_date,
+						meeting_date_timeStamp:info.meeting.meeting_date_timeStamp,
+						randomStr:args.randomStr,
+						qiandao:1,
+						name:info.user.name,
+						gonghao:info.user.gonghao,
+						danwei:info.user.danwei,
+						xiaoyuankahao:args.people_no,
+						meeting_time:info.meeting.meeting_time
+					})
+					qiandaoxinxi.save(function(e,d){
+						if(e){
+							console.log('----- save err -----')
+							console.error(e)
+							cb(e)
+						}else{
+							cb(null,d)	
+						}
+					})
+				}
+				if(doc){
+					console.log('----- 存在记录，判断是否签到过 -----')
+					if(doc.qiandao == 1){
+						console.log('----- 已经签到过 -----')
+						cb(1,'已经签到过')
+					}else{
+						console.log('还没签到，更新签到字段')
+						//更新qiandao字段  PersonModel.update({_id:_id},{$set:{name:'MDragon'}},function(err){});
+						bmqd.update({_id:doc._id},{$set:{qiandao:'1',update_timeStamp:moment().format('X'),update_time:moment().format('YYYY-MM-DD HH:mm:ss')}},function(ee,dd){
+							if(ee){
+								console.log('----- update err -----')
+								cb(ee)
+							}
+							else{
+								console.log('dd-->',dd)
+								cb(null,doc)
+							}
+						})
+					}
+					
+				}
+			})
+		}
+	],function(err,result){
+		if(err && err != 1){
+			console.log('----- async err -----')
+			return callback(err)
+		}
+		if(err == null && result){
+			console.log('----- async qiandao success -----')
+			console.log(result)
+			return callback(null,result)
+		}
+		if(err == 1 && result){
+			console.log('----- async 已经签到 -----')
+			return callback(1,'已经签到！')
+		}
+	})
+}
+
 //报名时的逻辑(get请求到达)
 exports.getMeetingDetail_1 = function(args,callback){
 	console.log('----- getMeetingDetail_1 -----')
@@ -910,141 +1025,6 @@ exports.baoming = function(args,callback){
 		if(err == 1 && result){
 			console.log('----- async 已经报名 -----')
 			return callback(1,'已经报名！')
-		}
-	})
-}
-
-//签到逻辑（post请求到达）
-exports.qiandao = function(args,callback){
-	async.waterfall([
-		//获取用户信息和会议详情
-		function(cb){
-			let search = user.findOne({})
-				search.where('xiaoyuankahao').equals(args.people_no)
-				search.exec(function(err,doc){
-					if(err){
-						console.log('----- search err -----')
-						console.error(err)
-						cb(err)
-					}
-					if(!doc){
-						console.log('----- 用户不存在 -----')
-						cb(1,'用户不存在')
-					}
-					if(doc && doc.length == 0){
-						console.log('----- 用户不存在 -----')
-						cb(1,'用户不存在')
-					}
-					if(doc && doc.length != 0){
-						console.log('----- 用户存在 -----')
-						console.log(doc)
-						cb(null,doc)
-					}
-				})
-		},
-		//获取会议详情
-		function(arg,cb){
-			let search = meeting.findOne({})
-				search.where('randomStr').equals(args.randomStr)
-				search.exec(function(err,doc){
-					if(err){
-						console.log('----- search err -----')
-						console.error(err)
-						cb(err)
-					}
-					if(!doc){
-						console.log('----- 没有该会议信息 -----')
-						cb(1,'没有会议信息')
-					}
-					if(doc){
-						console.log('----- 会议存在 -----')
-						console.log(doc)
-						let info = {}
-							info.user = arg
-							info.meeting = doc
-						cb(null,info)
-					}
-				})
-		},
-		//检查是否存在记录
-		function(info,cb){
-			console.log('check info -->',info)
-			let search = bmqd.findOne({})
-				search.where('randomStr').equals(args.randomStr)
-				search.where('xiaoyuankahao').equals(args.people_no)
-				search.where('baoming').gte('0')
-				//search.where('qiandao').equals('1')
-			search.exec(function(err,doc){
-				if(err){
-					console.log('----- search err -----')
-					console.error(err)
-					cb(err)
-				}
-				if(!doc){
-					console.log('----- 没有记录，直接插入新纪录 -----')
-					//新插入
-					let qiandaoxinxi = new bmqd({
-						meeting_nianji:info.meeting.meeting_nianji,
-						meeting_type:info.meeting.meeting_type,
-						meeting_name:info.meeting.meeting_name,
-						meeting_place:info.meeting.meeting_place,
-						meeting_des:info.meeting.meeting_des,
-						meeting_date:info.meeting.meeting_date,
-						meeting_date_timeStamp:info.meeting.meeting_date_timeStamp,
-						randomStr:args.randomStr,
-						qiandao:1,
-						name:info.user.name,
-						gonghao:info.user.gonghao,
-						danwei:info.user.danwei,
-						xiaoyuankahao:args.people_no,
-						meeting_time:info.meeting.meeting_time
-					})
-					qiandaoxinxi.save(function(e,d){
-						if(e){
-							console.log('----- save err -----')
-							console.error(e)
-							cb(e)
-						}else{
-							cb(null,d)	
-						}
-					})
-				}
-				if(doc){
-					console.log('----- 存在记录，判断是否签到过 -----')
-					if(doc.qiandao == 1){
-						console.log('----- 已经签到过 -----')
-						cb(1,'已经签到过')
-					}else{
-						console.log('还没签到，更新签到字段')
-						//更新qiandao字段  PersonModel.update({_id:_id},{$set:{name:'MDragon'}},function(err){});
-						bmqd.update({_id:doc._id},{$set:{qiandao:'1',update_timeStamp:moment().format('X'),update_time:moment().format('YYYY-MM-DD HH:mm:ss')}},function(ee,dd){
-							if(ee){
-								console.log('----- update err -----')
-								cb(ee)
-							}
-							else{
-								console.log('dd-->',dd)
-								cb(null,doc)
-							}
-						})
-					}
-					
-				}
-			})
-		}
-	],function(err,result){
-		if(err && err != 1){
-			console.log('----- async err -----')
-			return callback(err)
-		}
-		if(err == null && result){
-			console.log('----- async qiandao success -----')
-			console.log(result)
-			return callback(null,result)
-		}
-		if(err == 1 && result){
-			console.log('----- async 已经签到 -----')
-			return callback(1,'已经签到！')
 		}
 	})
 }
@@ -1635,26 +1615,7 @@ exports.chaxunstu = function(xiaoyuankahao,callback){
 		}
 	})
 }
-//获取用户信息
-exports.getUserInfo = function(xiaoyuankahao,callback){
-	let search = user.findOne({})
-		search.where('xiaoyuankahao').equals(xiaoyuankahao)
-		search.exec(function(error,result){
-			if(error){
-				console.log('----- search err -----')
-				console.log(err)
-				callback(err)
-			}
-			if(!result){
-				console.log('----- result is null -----')
-				callback(1,'没有该用户')
-			}
-			if(result){
-				console.log('check user -- >',result)
-				callback(null,result)
-			}
-		})
-}
+
 //学生签到详情列表
 exports.getStuQianDaoDetail = function(limit,offset,xiaoyuankahao,callback){
 	limit = parseInt(limit)
@@ -1731,6 +1692,27 @@ exports.getStuQianDaoDetail = function(limit,offset,xiaoyuankahao,callback){
 	})
 }
 
+//获取用户信息
+exports.getUserInfo = function(xiaoyuankahao,callback){
+	let search = user.findOne({})
+		search.where('xiaoyuankahao').equals(xiaoyuankahao)
+		search.exec(function(error,result){
+			if(error){
+				console.log('----- search err -----')
+				console.log(err)
+				callback(err)
+			}
+			if(!result){
+				console.log('----- result is null -----')
+				callback(1,'没有该用户')
+			}
+			if(result){
+				console.log('check user -- >',result)
+				callback(null,result)
+			}
+		})
+}
+
 //未签到详情
 /*1、取出会议信息；2、根据信息查询所有符合学生；3遍历学生，找出没有签到的人*/
 exports.getWeiQianDaoDetail = function(limit,offset,randomStr,callback){
@@ -1756,13 +1738,15 @@ exports.getWeiQianDaoDetail = function(limit,offset,randomStr,callback){
 					}
 				})
 		},
-		function(doc,cb){
+		function(doc,cb){//年级所有人
 			console.log('检查该会议-->',doc)
 			if(doc.meeting_type == '1'){
 				console.log('----- 年级会议 -----')
 				console.log('年级是 -- >',doc.meeting_nianji)
 				let search = user.find({},{'gonghao':1,'xiaoyuankahao':1,'name':1,'_id':1,'nianji':1})
 					search.where('nianji').equals(doc.meeting_nianji)
+					// search.limit(limit)
+					// search.skip(numSkip)
 					search.exec(function(err,docs){
 						if(err){
 							console.log('search err')
@@ -1776,8 +1760,9 @@ exports.getWeiQianDaoDetail = function(limit,offset,randomStr,callback){
 							console.log('该年级总共有 -- > ',docs.length,'人')
 							let info = {}
 								info.meeting_info = doc
-								info.stu = docs
-							cb(null,info)
+								//info.stu = docs
+								info.zong_length = docs.length
+							cb(null,info,doc)
 						}
 					})
 
@@ -1785,27 +1770,60 @@ exports.getWeiQianDaoDetail = function(limit,offset,randomStr,callback){
 				console.log('----- 非年级会议 暂时不做统计 -----')
 			}
 		},
-		function(info,cb){
-			let temp_stu = info.stu
+		function(info,doc,cb){
+			console.log('检查该会议-->',doc)
+			if(doc.meeting_type == '1'){
 				limit = parseInt(limit)
 				offset = parseInt(offset)
 				let numSkip = (offset)*limit
+				console.log('limit -->',limit)
 				console.log('skip num is: ',numSkip)
+
+				console.log('----- 年级会议 -----')
+				console.log('年级是 -- >',doc.meeting_nianji)
+				let search = user.find({},{'gonghao':1,'xiaoyuankahao':1,'name':1,'_id':1,'nianji':1})
+					search.where('nianji').equals(doc.meeting_nianji)
+					search.limit(limit)
+					search.skip(numSkip)
+					search.exec(function(err,docs){
+						if(err){
+							console.log('search err')
+							cb(err)
+						}
+						if(!docs){
+							console.log('没有签到信息')
+							cb(1,'没有签到信息')
+						}
+						if(docs){
+							console.log('该年级总共有 -- > ',docs.length,'人')
+							//let info = {}
+								//info.meeting_info = doc
+								info.stu = docs
+								//info.zong_length = docs.length
+							cb(null,info,doc)
+						}
+					})
+
+			}else{
+				console.log('----- 非年级会议 暂时不做统计 -----')
+			}
+		},
+		function(info,doc,cb){//总未签到人数
+			let temp_stu = info.stu;
 			async.eachLimit(temp_stu,10,function(item,callb){
 				let search = bmqd.findOne({})
 					search.where('qiandao').equals('1')
 					search.where('xiaoyuankahao').equals(item.xiaoyuankahao)
 					search.where('randomStr').equals(info.meeting_info.randomStr)
-					search.limit(limit)
-					search.skip(numSkip)
 					search.exec(function(e,d){
 						if(e){
 							console.log('eachLimit search err')
 							console.log(e)
+							callb(e)
 						}
 						if(!d){
 							console.log('没有签到记录，push进数组')
-							console.log(item)
+							//console.log(item)
 							weiqiandao_stu.push(item)
 							callb()
 						}
@@ -1846,9 +1864,9 @@ exports.getWeiQianDaoDetail = function(limit,offset,randomStr,callback){
 			}
 			//console.log('check weiqiandao_stu -- >',weiqiandao_stu)
 			info.weiqiandao_stu = weiqiandao_stu
-			info.total = weiqiandao_stu.length
+			info.total = info.zong_length
 			info.offset = offset
-			console.log(weiqiandao_stu)
+			//console.log(weiqiandao_stu)
 			cb(null,info)
 		}
 	],function(error,result){
@@ -1864,7 +1882,7 @@ exports.getWeiQianDaoDetail = function(limit,offset,randomStr,callback){
 		}
 		if(!error && result){
 			console.log('async finish')
-			console.log(result)
+			//console.log(result)
 			callback(null,result)
 		}
 	})
@@ -2487,951 +2505,3 @@ exports.applyApproveQuery = function(limit,offset,begin_date,end_date,meeting_ty
 	}
 }
 
-//添加会议室
-exports.add_meeting_room = function(room_name,callback){
-	async.waterfall([
-		function(cb){//check the if the record is existed
-			meeting_room.find({'room_name':room_name},function(err,doc){
-				if(err){
-					console.log('----- search err -----')
-					console.error(err)
-					return cb(err)
-				}
-				if(!doc){
-					console.log('----- room_name is not existed -----')
-					return cb(null)
-				}
-				if(doc.length == 0){
-					console.log('----- room_name is not existed -----')
-					return cb(null)
-				}
-				if(doc){
-					console.log('----- room_name is existed -----')
-					console.log(doc)
-					return cb(1,doc)
-				}
-				//cb(null)
-			})
-		},
-		function(cb){
-			var room = new meeting_room({
-				room_name:room_name
-			})
-			room.save(function(err,doc){
-				if(err){
-					console.log('----- add err -----')
-					console.error(err)
-					cb(err)
-				}
-				console.log('----- add success -----')
-				return cb(null,doc)
-			})
-		}
-	],function(err,result){
-		if(err && result){
-			console.log('----- room_name is existed -----')
-			callback(1)
-		}
-		else if(err && !result){
-			console.log('----- async err -----')
-		}
-		else{
-			console.log('----- final result -----')
-			console.log(result)
-			callback(result)
-		}
-	})
-	
-}
-//返回一周会议室申请记录
-exports.apply_record = function(week,callback){
-	async.waterfall([
-		function(cb){//获取所有会议室记录
-			meeting_room.find({},'room_name',function(err,docs){
-				if(err){
-					console.log('----- search err -----')
-					cb(err)
-				}
-				if(!docs || docs.length == 0){
-					console.log('----- docs is null -----')
-					cb(1)
-				}
-				if(docs && docs.length != 0){
-					console.log('meeting_room: ',docs)
-					cb(null,docs)
-				}
-			})
-		},
-		function(docs,cb){
-			var list = new Array(),
-				resultList = new Array()
-			async.eachLimit(docs,1,function(item,cbb){
-				console.log('----- check each docs -----')
-				console.log(item)
-				list.push(item.room_name)
-				var dateArr = new Array()
-					dateArr.push(moment().add(week,'week').format('MM月DD日'))
-					dateArr.push(moment().add(week,'week').add(1,'days').format('MM月DD日'))
-					dateArr.push(moment().add(week,'week').add(2,'days').format('MM月DD日'))
-					dateArr.push(moment().add(week,'week').add(3,'days').format('MM月DD日'))
-					dateArr.push(moment().add(week,'week').add(4,'days').format('MM月DD日'))
-					dateArr.push(moment().add(week,'week').add(5,'days').format('MM月DD日'))
-					dateArr.push(moment().add(week,'week').add(6,'days').format('MM月DD日'))
-
-				console.log('dateArr:',dateArr)
-
-				async.eachLimit(dateArr,1,function(val,cbbb){
-					console.log('----- check dateArr val -----')
-					console.log(val)
-					var timeArr = new Array()
-						timeArr.push('上午')
-						timeArr.push('中午')
-						timeArr.push('下午')
-						timeArr.push('晚上')
-					console.log('timeArr:',timeArr)
-					async.eachLimit(timeArr,1,function(v,cbbbb){
-						console.log('----- check timeArr val -----')
-						//console.log(v)
-						console.log('meeting_date && meeting_time && room_name',val,v,item.room_name)
-						apply.find({'meeting_date':val,'meeting_time':v,'room_name':item.room_name},function(err,doc){
-							if(err){
-								console.log('----- search err -----')
-							}
-							if(!doc || doc.length ==0){
-								console.log('----- doc is null -----')
-								list.push('0')
-								cbbbb()
-							}
-							if(doc && doc.length != 0) {
-								var temp = '1'
-								for(let k=0;k<doc.length;k++){
-									//console.log(doc)
-									if(doc[k].is_approved == 1){//有批准记录
-										console.log('----- has is_approved -----')
-										temp = '2'
-									}
-								}
-								list.push(temp)
-								cbbbb()
-							}
-						})
-					},function(err){
-							if(err){
-								console.log('----- each timeArr err -----')
-							}
-							//console.log('list:',list)
-							console.log('----- each timeArr finish -----')
-							console.log('list length',list.length)
-							//分割结果
-							resultList = chunk(list,29)
-							cbbb()		
-					})
-				},function(err){
-					if(err){
-						console.log('----- each dateArr err -----')
-					}
-					//resultList.push(list)
-					//console.log('resultList:',resultList)
-					console.log('----- each week days finish -----')
-					console.log('resultList length',resultList.length)
-					cbb()
-				})
-			},function(err){
-				if(err){
-					console.log('----- each docs err -----')
-				}
-				console.log('----- async waterfall finish -----')
-				//console.log('resultList: ',resultList)
-				cb(null,resultList)
-			})
-		}
-	],function(err,result){
-		if(err && err == 1){
-			console.log('----- async err and result is null -----')
-			callback(null)
-		}
-		else if(err && err != 1){
-			console.log('----- async err -----')
-			console.log(err.message)
-		}
-		else{
-			console.log('----- async end and final result is -----')
-			console.log(result)
-			callback(result)
-		}
-	})
-}
-//获取点击查看申请详情
-exports.get_meeting_detail = function(week,room_name,meeting_date,meeting_time,callback){
-	console.log('check args: ',room_name,meeting_date,meeting_time)
-	apply.find({'room_name':room_name,'meeting_date':meeting_date,'meeting_time':meeting_time},function(err,docs){
-		if(err){
-			console.log('----- find err -----')
-			callback(err)
-		}
-		if(!docs || docs.length == 0){
-			console.log('----- docs is null -----')
-			return callback()
-		}
-		console.log('----- check docs -----')
-		console.log(docs)
-		callback(null,docs)
-	})
-}
-//获取会议室，返回前端select
-exports.select_room = function(callback){
-	meeting_room.find({},function(err,docs){
-		if(err){
-			console.log('----- search err -----')
-			callback(err)
-		}
-		if(!docs || docs.length == 0){
-			console.log('----- docs is null -----')
-			callback(1,null)
-		}
-		console.log(docs)
-		let room_arr = new Array()
-		for(let i=0;i<docs.length;i++){
-			room_arr.push(docs[i].room_name)
-		}
-		console.log('----- check room_arr -----')
-		console.log(room_arr)
-		callback(null,room_arr)
-	})
-}
-//添加申请记录
-exports.apply = function(room_name,meeting_name,meeting_num,meeting_content,meeting_date,meeting_time,apply_name,apply_phone,exact_meeting_time,apply_email,callback){
-	async.waterfall([
-		function(cb){//检查该时间段会议室是否已被批准使用
-			apply.find({'room_name':room_name,'meeting_date':meeting_date,'exact_meeting_time':exact_meeting_time,'is_approved':1},function(err,doc){
-				if(err){
-					console.log('----- search err -----')
-					console.error(err)
-					return cb(err)
-				}
-				if(!doc || doc.length == 0){
-					console.log('----- 没有批准记录 -----')
-					cb(null)
-				}
-				if(doc && doc.length != 0){
-					console.log('----- 已有批准记录 -----')
-					console.log(doc)
-					cb(1,doc)
-				}
-			})
-		},
-		function(cb){//当同一个人连续点两次提交，申请的是同一条记录的时候，返回提示
-			apply.find({'room_name':room_name,'meeting_date':meeting_date,'exact_meeting_time':exact_meeting_time,'apply_name':apply_name},function(err,doc){
-				if(err){
-					console.log('----- search err -----')
-					console.log(err.message)
-					return cb(err)
-				}
-				if(!doc || doc.length == 0){
-					console.log('----- 同一申请人没有重复申请 -----')
-					cb(null)
-				}
-				if(doc && doc.length != 0){
-					console.log('----- 同一申请人相同时间重复申请 -----')
-					console.log(doc)
-					cb(1,2)
-				}
-			})
-		},
-		function(cb){
-			var new_apply = new apply({
-				room_name : room_name,
-				meeting_name : meeting_name,
-				meeting_num : meeting_num,
-				meeting_content : meeting_content,
-				meeting_date : meeting_date,
-				meeting_time : meeting_time,
-				apply_name : apply_name,
-				apply_phone : apply_phone,
-				exact_meeting_time : exact_meeting_time,
-				apply_time : moment().format('YYYY-MM-DD HH:mm:ss'),
-				email :apply_email
-			})
-			console.log(new_apply)
-			new_apply.save(function(err,doc){
-				if(err){
-					console.log('----- save err -----')
-					console.error(err)
-					return cb(err)
-				}
-				console.log('---- save success -----')
-				console.log('new_apply: ',doc)
-				cb(null,doc)
-			})
-		}
-	],function(err,result){
-		if(err && result != 2){
-			console.log('----- 已有批准记录 -----')
-			return callback(null,1)
-		}
-		if(err && result == 2){
-			console.log('----- async 重复申请 -----')
-			return callback(null,2)
-		}
-		if(err){
-			console.log('----- async err -----')
-			return callback(err)
-		}
-		callback(null,result)
-	})
-}
-//添加申请记录(分割时间)
-exports.applyTwo = function(attribute,callback){
-	var room_name = attribute.room_name,
-		meeting_name = attribute.meeting_name,
-		meeting_num = attribute.meeting_num,
-		meeting_content = attribute.meeting_content,
-		apply_name = attribute.apply_name,
-		apply_phone = attribute.apply_phone,
-		meeting_date = attribute.meeting_date,
-		meeting_time = attribute.meeting_time,
-		exact_meeting_time = attribute.exact_meeting_time,
-		apply_email = attribute.apply_email,
-		first_hour = attribute.first_hour,
-		first_minute = attribute.first_minute,
-		second_hour = attribute.second_hour,
-		second_minute = attribute.second_minute
-	console.log('first_hour-->',first_hour,'second_hour-->',second_hour,'first_minute-->',first_minute,'second_minute-->',second_minute)
-	async.waterfall([
-		function(cb){//检查申请时间段会议室是否已被批准使用
-			//情况1：审批结果的结束时间(second_minute)为00的时候
-			let search = apply.find({})
-				search.where('room_name').equals(room_name)
-				search.where('meeting_date').equals(meeting_date)
-				search.where('is_approved').equals('1')
-				search.where('second_minute').equals('00')
-				search.where('meeting_time').equals(meeting_time)
-				search.where('second_hour').gt(first_hour)
-				search.exec(function(err,docs){
-					if(err){
-						console.log('----- search err -----')
-						console.log(err.message)
-						 cb(err)
-					}
-					if(!docs || docs.length == 0){
-						console.log('----- 没有批准记录(情况1) -----')
-						 cb(null)
-					}
-					if(docs && docs.length != 0){
-						console.log('----- 已有批准记录(时间段冲突(情况1)) -----')
-						cb(1,docs)
-					}
-				})
-		},
-		function(cb){
-			//情况2，审批结果的结束时间(second_minute)为30并且新申请first_hour小于second_hour的时候
-			let search = apply.find({})
-				search.where('room_name').equals(room_name)
-				search.where('meeting_date').equals(meeting_date)
-				search.where('is_approved').equals('1')
-				search.where('second_minute').equals('30')
-				search.where('meeting_time').equals(meeting_time)
-				search.where('second_hour').gt(first_hour)
-				search.exec(function(err,docs){
-					if(err){
-						console.log('----- search err -----')
-						console.log(err.message)
-						cb(err)
-					}
-					if(!docs || docs.length == 0){
-						console.log('----- 没有批准记录(情况2) -----')
-						 cb(null)
-					}
-					if(docs && docs.length != 0){
-						console.log('----- 已有批准记录(时间段冲突(情况2--新申请开始时间冲突)) -----')
-						console.log(docs)
-						cb(1,docs)
-					}
-				})
-		},
-		function(cb){
-			let search = apply.find({})
-				search.where('room_name').equals(room_name)
-				search.where('meeting_date').equals(meeting_date)
-				search.where('is_approved').equals('1')
-				search.where('second_minute').equals('30')
-				search.where('second_hour').equals(first_hour)
-				search.exec(function(err,docs){
-					if(err){
-						console.log('----- search err -----')
-						console.log(err.message)
-						cb(err)
-					}
-					if(!docs || docs.length == 0){
-						console.log('----- 没有批准记录(情况2) -----')
-						 cb(null)
-					}
-					if(docs && docs.length !=0 && first_minute == '00'){
-						console.log('----- 已有批准记录(时间段冲突(情况3--新申请开始时间冲突)) -----')
-						cb(1,docs)
-					}
-					if(docs && docs.length !=0 && first_minute == '30'){
-						console.log('----- 情况3没有冲突 -----')
-						cb(null)
-					}
-				})
-		},
-		function(cb){
-			apply.find({'room_name':room_name,'meeting_date':meeting_date,'exact_meeting_time':exact_meeting_time,'apply_name':apply_name},function(err,doc){
-				if(err){
-					console.log('----- search err -----')
-					console.log(err.message)
-					return cb(err)
-				}
-				if(!doc || doc.length == 0){
-					console.log('----- 同一申请人没有重复申请 -----')
-					cb(null)
-				}
-				if(doc && doc.length != 0){
-					console.log('----- 同一申请人相同时间重复申请 -----')
-					console.log(doc)
-					cb(1,2)
-				}
-			})
-		},
-		function(cb){
-			let for_week_use_1 = meeting_date.substring(0,2),
-				for_week_use_2 = meeting_date.substring(3,5),
-				week_day_use = '2017-' + for_week_use_1 + '-' + for_week_use_2
-
-			var new_apply_Two = new apply({
-				room_name : room_name,
-				meeting_name : meeting_name,
-				meeting_num : meeting_num,
-				meeting_content : meeting_content,
-				meeting_date : meeting_date,
-				meeting_time : meeting_time,
-				apply_name : apply_name,
-				apply_phone : apply_phone,
-				exact_meeting_time : exact_meeting_time,
-				apply_time : moment().format('YYYY-MM-DD HH:mm:ss'),
-				email :apply_email,
-				first_hour : first_hour,
-				second_hour : second_hour,
-				first_minute : first_minute,
-				second_minute : second_minute,
-				week_day : moment(week_day_use).format('dddd')
-			})
-			console.log(new_apply_Two)
-
-			new_apply_Two.save(function(err,doc){
-				if(err){
-					console.log('----- save err -----')
-					console.error(err)
-					return cb(err)
-				}
-				console.log('---- save success -----')
-				console.log('new_apply_Two-->',doc)
-				cb(null,doc)
-			})
-		}
-	],function(err,result){
-		if(err && result != 2){
-			console.log('----- 已有批准记录 -----')
-			return callback(null,1)
-		}
-		if(err && result == 2){
-			console.log('----- async 重复申请 -----')
-			return callback(null,2)
-		}
-		if(err){
-			console.log('----- async err -----')
-			return callback(err)
-		}
-		callback(null,result)
-	})
-}
-//add admin user
-exports.addAdminUser = function(username,password,callback){
-	admin.find({'username':username},function(err,doc){
-		if(err){
-			console.log('----- search err -----')
-			callback(err,null)
-		}
-		if(!doc || doc.length == 0){
-			console.log('----- username is not existed and can be add -----')
-			let newUser = new admin({
-				username : username,
-				password : password
-			})
-			console.log('new adminUser: ',newUser)
-			newUser.save(function(error,doc){
-				if(error){
-					console.log('----- save err -----')
-					callback(error)
-				}
-				console.log('----- save success -----')
-				callback(null,doc)
-			})
-		}
-		if(doc && doc.length != 0){
-			console.log('----- username is existed -----')
-			callback(1,1)
-		}
-	})
-}
-//checkLogin
-// exports.checkLogin = function(username,password,callback){
-// 	async.waterfall([
-// 		function(cb){
-// 			admin.find({'username':username},function(err,doc){
-// 				if(err){
-// 					console.log('----- search err -----')
-// 					cb(err,null)
-// 				}
-// 				if(!doc || doc.length == 0){
-// 					console.log('----- username not existed -----')
-// 					cb(1,1)
-// 				}
-// 				if(doc && doc.length != 0){
-// 					console.log('----- check admin detail -----')
-// 					console.log(doc)
-// 					cb(null,doc[0])
-// 				}
-// 			})
-// 		},
-// 		function(doc,cb){
-// 			if(doc.password == password){
-// 				console.log('----- login confirm -----')
-// 				cb(null,doc)
-// 			}
-// 		}
-// 	],function(err,result){
-// 		if(err && result == 1){
-// 			console.log('----- admin not existed -----')
-// 			callback(1,1)
-// 		}
-// 		if(err && result == null){
-// 			console.log('----- async err -----')
-// 			callback(err,null)
-// 		}
-// 		if(err == null){
-// 			console.log('----- final check -----')
-// 			callback(null,result)
-// 		}
-		
-// 	})
-// }
-//get applyRecord for applier to check
-exports.applyRecord = function(limit,offset,applier,callback){
-	console.log('applier is -->',applier)
-	async.waterfall([
-		function(cb){
-			let query = apply.find({})
-				query.where('apply_name').equals(applier)
-				query.exec(function(err,docs){
-					if(err){
-						console.log('----- search err -----')
-						console.log(err.message)
-						cb(err,null)
-					}
-					if(!docs || docs.length == 0){
-						console.log('----- no result now -----')
-				 		cb(1,1)
-					}
-					if(docs && docs.length != 0){
-						cb(null,docs.length)
-					}
-				})
-		},
-		function(length,cb){
-			console.log('total records num -->',length)
-			limit = parseInt(limit)
-			offset = parseInt(offset)
-			let numSkip = (offset) * limit
-			console.log('skip num is -->',numSkip)
-			let search = apply.find({},{'room_name':1,'meeting_name':1,'meeting_date':1,'exact_meeting_time':1,'meeting_content':1,'apply_time':1,'meeting_num':1,'apply_name':1,'apply_phone':1,'is_approved':1,'_id':1,'is_allowed':1,'week_day':1})
-				search.where('apply_name').equals(applier)
-				search.sort({'apply_time':-1})
-				search.limit(limit)
-				search.skip(numSkip)
-				search.exec(function(err,docs){
-					if(err){
-						console.log('----- search err -----')
-						console.log(err.message)
-						cb(err,null)
-					}
-					if(!docs || docs.length == 0){
-						console.log('----- no result now -----')
-						cb(1,1)
-					}
-					if(docs && docs.length !=0){//格式化并将length加入
-						for(let i=0;i<docs.length;i++){
-							//格式化时间戳
-							//docs[i].apply_time = moment(docs[i].apply_time).format('YYYY-MM-DD HH:mm:ss')
-							//console.log('check applytime : ',docs[i].apply_time)
-							if(typeof(docs[i].week_day) == 'undefined'){
-								docs[i].week_day = ''
-							}
-
-							docs[i].exact_meeting_time = docs[i].meeting_date + ' ' + docs[i].week_day + ' ' + docs[i].exact_meeting_time 
-							console.log('docs.is_approved: ',docs[i].is_approved)
-							console.log('docs.is_allowed: ',docs[i].is_allowed)
-							console.log(docs[i])
-							if(docs[i].is_approved == 0 && docs[i].is_allowed == 0){
-								console.log('--- check here -----')
-								docs[i].is_approved = '未审批'
-								console.log(docs[i].is_approved)
-							}
-							else if(docs[i].is_approved == 1 && docs[i].is_allowed == 0){
-								console.log('--- check here -----')
-								docs[i].is_approved = '已批准'
-								console.log(docs[i].is_approved)
-							}
-							else{//docs[i].is_approved == 0 && docs[i].is_allowed == 1
-								console.log('----- check here hrere -----')
-								docs[i].is_approved = '未批准'
-							}
-						}
-
-						 docs = {
-						 	total : length,
-						 	docs : docs,
-						 	offset : offset
-						 }
-						 cb(null,docs)
-					}
-				})
-		}
-	],function(err,result){
-		if(err && result == 1){
-				console.log('----- async no records -----')
-				callback(err,1)
-			}
-			else if(err && result == null){
-				console.log('----- async err -----')
-				callback(err,null)
-			}
-			else{//(result && result.length != 0)
-				console.log('----- async final result -----')
-				callback(null,result)
-			}
-	})
-}
-
-exports.applyRecordQuery = function(limit,offset,begin_date,end_date,applier,callback){
-	console.log('applier is-->',applier)
-	//如果begin_date为空，取默认值2017-01-01,end_time为空，取当前时间戳
-	if(!begin_date || typeof begin_date == 'undefined'){
-		begin_date = moment('2017-01-01','YYYY-MM-DD').format('X')
-		console.log('begin_date is null')
-		console.log('check begin_date timeStamp',begin_date)
-	}else{
-		console.log('begin_date is not null')
-		begin_date = moment(begin_date,'YYYY-MM-DD').format('X')
-		console.log('check begin_date timeStamp',begin_date)
-	}
-	if(!end_date || typeof end_date == 'undefined'){
-		end_date = moment().format('X')
-		console.log('end_date is null ')
-		console.log('check end_date timeStamp',end_date)
-	}else{
-		end_date = moment(end_date,'YYYY-MM-DD').add(1,'days').format('X')
-		console.log('end_date is not null')
-		console.log('check end_date timeStamp',begin_date)
-	}
-	async.waterfall([
-		function(cb){
-			let search = apply.find({})
-				search.where('apply_name').equals(applier)
-				search.where('apply_timeStamp').gte(begin_date)
-				search.where('apply_timeStamp').lte(end_date)
-				search.exec(function(err,docs){
-					if(err){
-						console.log('----- search err -----')
-						console.log(err.message)
-						cb(err,null)
-					}
-					if(!docs || docs.length == 0){
-						console.log('----- no result now -----')
-						cb(1,1)
-					}
-					if(docs && docs.length !=0){
-						console.log('check apply records that fetch condition-->',docs)
-						cb(null,docs.length)
-					}
-				})
-		},
-		function(length,cb){
-			console.log('check records length-->',length)
-			limit = parseInt(limit)
-			offset = parseInt(offset)
-			let numSkip = (offset)*limit
-			console.log('skip num is: ',numSkip)
-			let secondSearch = apply.find({},{'room_name':1,'meeting_name':1,'meeting_date':1,'exact_meeting_time':1,'meeting_content':1,'apply_time':1,'meeting_num':1,'apply_name':1,'apply_phone':1,'is_approved':1,'_id':1,'is_allowed':1,'week_day':1})
-				secondSearch.where('apply_name').equals(applier)
-				secondSearch.where('apply_timeStamp').gte(begin_date)
-				secondSearch.where('apply_timeStamp').lte(end_date)
-				secondSearch.sort({'apply_time':-1})
-				secondSearch.limit(limit)
-				secondSearch.skip(numSkip)
-				secondSearch.exec(function(err,docs){
-					if(err){
-						console.log('----- search err -----')
-						console.log(err.message)
-						cb(err,null)
-					}
-					if(!docs || docs.length == 0){
-						console.log('----- no result now -----')
-						cb(1,1)
-					}
-					if(docs && docs.length != 0){
-						
-						for(let i=0;i<docs.length;i++){
-							if(typeof(docs[i].week_day) == 'undefined'){
-								docs[i].week_day = ''
-							}
-							docs[i].exact_meeting_time = docs[i].meeting_date + ' ' + docs[i].week_day + ' ' + docs[i].exact_meeting_time
-							console.log('docs.is_approved: ',docs[i].is_approved)
-							if(docs[i].is_approved == 1){
-								console.log('--- check here -----')
-								docs[i].is_approved = '已批准'
-								console.log(docs[i].is_approved)
-							}
-							else{
-								console.log('----- check here hrere -----')
-								docs[i].is_approved = '未批准'
-							}
-						}
-						docs = {
-							 	total : length,
-							 	docs : docs,
-							 	offset : offset
-							 }
-						cb(null,docs)
-					}
-				})
-		}
-	],function(err,result){
-		if(err && result == 1){
-			console.log('----- async no records -----')
-			callback(err,1)
-		}
-		else if(err && result == null){
-			console.log('----- async err -----')
-			callback(err,null)
-		}
-		else{//(result && result.length != 0)
-			console.log('----- async final result -----')
-			callback(null,result)
-		}
-	})
-}
-//get apply for approve matching query date
-
-//applyDetail
-exports.applyDetail = function(_id,callback){
-	apply.findOne({'_id':_id},function(err,doc){
-		if(err){
-			console.log('----- search err -----')
-			console.log(e.message)
-			callback(err,null)
-		}
-		if(!doc || doc.length == 0){
-			console.log('----- no result -----')
-			callback(1,1)
-		}
-		if(doc && doc.length != 0){
-			console.log('----- check doc -----')
-			console.log(doc)
-			callback(null,doc)
-		}
-	})
-}
-//delete apply record
-exports.deleteRecord = function(_id,check_delete,callback){
-	if(check_delete == 1){
-		apply.remove({'_id':_id},function(err){
-			if(err){
-				console.log('----- delete record err -----')
-				console.log(err.message)
-				callback(err,null)
-			}
-			console.log('----- delete record success -----')
-			callback(null)
-		})
-	}
-}
-//updateApprove and send email to notice applier
-exports.updateApprove = function(_id,is_approved,callback){
-	//{$set:{name:'MDragon'}}
-	if(is_approved == 1){
-		apply.update({'_id':_id},{$set:{'is_approved':is_approved}},function(err){
-			if(err){
-				console.log('----- update err -----')
-				console.log(err.message)
-				callback(err,null)
-			}
-			console.log('----- update success -----')
-			//find this record and send a email
-			apply.findOne({'_id':_id},function(err,doc){
-				if(err){
-					console.log('----- search err -----')
-					console.log(err.message)
-				}else{
-					let sendTo = doc.email
-					console.log('check email: ',sendTo)
-					data.to = sendTo
-					data.html = '您好，你申请的 <strong>'+doc.room_name+' </strong>已通过审批,会议时间: <strong style="color:red">' + doc.meeting_date + ' ' + doc.exact_meeting_time + '</strong>。'
-					console.log('check send data: ',data)
-					transporter.sendMail(data,function(err,info){
-						if(err){
-							console.log('----- send email err -----')
-							console.log(err.message)
-						}else{
-							console.log('message sent: ',info.response)
-							callback(null)
-						}
-					})
-				}
-			})
-			//callback(null)
-		})
-	}else{//send email to inform applier the result is not pass
-		console.log('is_approved is -->',is_approved)
-		apply.update({'_id':_id},{$set:{'is_allowed':1}},function(err){
-			if(err){
-				console.log('----- update err -----')
-				console.log(err.message)
-				callback(err,null)
-			}
-			console.log('----- update success -----')
-			apply.findOne({'_id':_id},function(err,doc){
-				if(err){
-					console.log('----- search err -----')
-					console.log(err.message)
-				}else{
-					let sendTo = doc.email
-					console.log('check email-->',sendTo)
-					data.to = sendTo
-					if(doc.room_name == '624小教室--有电脑(68人)' || doc.room_name == '623会议室--无电脑(16-24人)'){
-						data.html = '您好，你申请的 <strong>'+doc.room_name+' </strong>已被占用,会议时间: <strong style="color:red">' + doc.meeting_date + ' ' + doc.exact_meeting_time + '</strong>，特殊情况请联系管理员 曾小告(15220159520)。'
-					}
-					else if(doc.room_name == '1楼报告厅--无电脑(452人)'){
-						data.html = '您好，你申请的 <strong>'+doc.room_name+' </strong>已被占用,会议时间: <strong style="color:red">' + doc.meeting_date + ' ' + doc.exact_meeting_time + '</strong>，特殊情况请联系管理员 冯春(13603010438)。'
-					}
-					else if(doc.room_name == '412会议室--无电脑(11人)'){
-						data.html = '您好，你申请的 <strong>'+doc.room_name+' </strong>已被占用,会议时间: <strong style="color:red">' + doc.meeting_date + ' ' + doc.exact_meeting_time + '</strong>，特殊情况请联系管理员 余芳(13760178106)。'
-					}
-					else{
-						data.html = '您好，你申请的 <strong>'+doc.room_name+' </strong>已被占用,会议时间: <strong style="color:red">' + doc.meeting_date + ' ' + doc.exact_meeting_time + '</strong>，特殊情况请联系管理员 李雅丽(15818677129)。'
-					}
-					console.log('check send data: ',data)
-					transporter.sendMail(data,function(err,info){
-						if(err){
-							console.log('----- send email err -----')
-							console.log(err.message)
-						}else{
-							console.log('message sent: ',info.response)
-							callback(null)
-						}
-					})
-				}
-			})
-		})
-	}
-}
-//测试添加申请记录
-exports.test_apply = function(room_name,meeting_name,meeting_num,meeting_content,meeting_date,meeting_time,apply_name,apply_phone,callback){
-	async.waterfall([
-		function(cb){//检查该时间段会议室是否已被批准使用
-			apply.find({'room_name':room_name,'meeting_date':meeting_date,'meeting_time':meeting_time,'is_approved':1},function(err,doc){
-				if(err){
-					console.log('----- search err -----')
-					console.error(err)
-					return cb(err)
-				}
-				if(!doc || doc.length == 0){
-					console.log('----- 没有申请 -----')
-					cb(null)
-				}
-				if(doc && doc.length != 0){
-					console.log('----- 已有批准记录 -----')
-					console.log(doc)
-					cb(1,doc)
-				}
-			})
-		},
-		function(cb){
-			var new_apply = new apply({
-				room_name : room_name,
-				meeting_name : meeting_name,
-				meeting_num : meeting_num,
-				meeting_content : meeting_content,
-				meeting_date : meeting_date,
-				meeting_time : meeting_time,
-				apply_name : apply_name,
-				apply_phone : apply_phone,
-				apply_timeStamp : moment().format('X')
-			})
-			console.log('new_apply: ',new_apply)
-			new_apply.save(function(err,doc){
-				if(err){
-					console.log('----- save err -----')
-					console.error(err)
-					return cb(err)
-				}
-				console.log('---- save success -----')
-				console.log('new_apply: ',doc)
-				cb(null,doc)
-			})
-		}
-	],function(err,result){
-		if(err && result){
-			console.log('----- 已有批准记录 -----')
-			return callback(null,1)
-		}
-		if(err){
-			console.log('----- async err -----')
-			return callback(err)
-		}
-		callback(null,result)
-	})
-}
-//删除无效审批记录
-exports.deleteApprove = function(ids,callback){
-	if(typeof ids != 'object'){
-		console.log('typeof ids --->',typeof ids)
-		console.log('----- delete only one record -----')
-		console.log('id is --->',ids)
-		apply.remove({'_id':ids},function(err){
-			console.log('remove')
-			if(err){
-				console.log('----- delete record err -----')
-				console.log(err.message)
-				callback(err,null)
-			}
-			console.log('----- delete record success -----')
-			callback(null)
-		})
-	}
-	else{
-		console.log('----- delete more than one record -----')
-		console.log('ids are --->',ids)
-		async.eachLimit(ids,1,function(item,cb){
-			apply.remove({'_id':item},function(err){
-				console.log('check item --->',item)
-				if(err){
-					console.log('----- delete record err -----')
-					console.log(err.message)
-					cb(err,null)
-				}
-				console.log('----- delete records success -----')
-				cb()
-			})
-		},function(err){
-			if(err){
-				console.log('----- async each err -----')
-				console.log(err.message)
-				callback(err,null)
-			}
-			console.log('----- delete all applyApprove success -----')
-			callback(null)
-		})
-	}
-}
