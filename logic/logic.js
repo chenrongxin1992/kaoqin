@@ -1760,7 +1760,7 @@ exports.getWeiQianDaoDetail = function(limit,offset,randomStr,callback){
 							console.log('该年级总共有 -- > ',docs.length,'人')
 							let info = {}
 								info.meeting_info = doc
-								//info.stu = docs
+								info.stu = docs
 								info.zong_length = docs.length
 							cb(null,info,doc)
 						}
@@ -1770,7 +1770,7 @@ exports.getWeiQianDaoDetail = function(limit,offset,randomStr,callback){
 				console.log('----- 非年级会议 暂时不做统计 -----')
 			}
 		},
-		function(info,doc,cb){
+		/*function(info,doc,cb){
 			console.log('检查该会议-->',doc)
 			if(doc.meeting_type == '1'){
 				limit = parseInt(limit)
@@ -1795,7 +1795,7 @@ exports.getWeiQianDaoDetail = function(limit,offset,randomStr,callback){
 							cb(1,'没有签到信息')
 						}
 						if(docs){
-							console.log('该年级总共有 -- > ',docs.length,'人')
+							console.log('符合条件有 -- > ',docs.length,'人')
 							//let info = {}
 								//info.meeting_info = doc
 								info.stu = docs
@@ -1807,7 +1807,7 @@ exports.getWeiQianDaoDetail = function(limit,offset,randomStr,callback){
 			}else{
 				console.log('----- 非年级会议 暂时不做统计 -----')
 			}
-		},
+		},*/
 		function(info,doc,cb){//总未签到人数
 			let temp_stu = info.stu;
 			async.eachLimit(temp_stu,10,function(item,callb){
@@ -1862,9 +1862,23 @@ exports.getWeiQianDaoDetail = function(limit,offset,randomStr,callback){
 				weiqiandao_stu[i].insert_time = '未签到'
 				//console.log(weiqiandao_stu[i])
 			}
+			limit = parseInt(limit)
+			offset = parseInt(offset)
+			let numSkip = (offset)*limit
+			console.log('limit -->',limit)
+			console.log('skip num is: ',numSkip)
+			let temp_weiqiandao_stu = new Array()
+			
+			for(let k=0;k<limit;k++){
+				//let m=limit*(k+1)
+				if(weiqiandao_stu[numSkip+k])
+					temp_weiqiandao_stu.push(weiqiandao_stu[numSkip+k])  
+			}
+			console.log('temp_weiqiandao_stu',temp_weiqiandao_stu)
+			console.log('weiqiandao_stu',weiqiandao_stu)
 			//console.log('check weiqiandao_stu -- >',weiqiandao_stu)
-			info.weiqiandao_stu = weiqiandao_stu
-			info.total = info.zong_length
+			info.weiqiandao_stu = temp_weiqiandao_stu
+			info.total = weiqiandao_stu.length
 			info.offset = offset
 			//console.log(weiqiandao_stu)
 			cb(null,info)
