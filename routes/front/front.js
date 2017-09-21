@@ -1003,15 +1003,27 @@ router.get('/qiandao',function(req,res){
 	}
 })
 
+//时间差
+router.post('/gettime',function(req,res){
+	console.log('----- in router gettime -----')
+	let timeStamp = req.body.timeStamp
+	console.log('客户端时间戳-->',timeStamp)
+	let serverTimeStamp = moment().format('X')
+	console.log('服务器时间戳 -- >',serverTimeStamp)
+	let shijiancha = serverTimeStamp - timeStamp
+	console.log('客户端与服务器时间差 -- >',shijiancha)
+	return res.json({'shijiancha':shijiancha})
+})
+
 //动态签到
 //http://116.13.96.53:81/front/qiandao/?r=793p54&q=1&d=0
 router.get('/qiandaodongtai',function(req,res){
 		console.log('----- qiandao router & 动态二维码 -----')
 		let nowTimeStamp = moment().format('X')
 		console.log('check nowTimeStamp-->',nowTimeStamp)
-		console.log('check t-->',req.query.t)
+		console.log('传递时间戳 --> ',req.query.t)
 		console.log('请求到达服务器时间 - 二维码时间戳 --> ',nowTimeStamp-req.query.t)
-		if(nowTimeStamp - req.query.t > 15){
+		if(nowTimeStamp - req.query.t > 18){
 			console.log('----- 二维码过期 -----')
 			return res.render('front/guoqi')
 		}else{

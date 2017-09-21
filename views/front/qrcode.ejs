@@ -306,7 +306,8 @@
     <script type="text/javascript" src='/javascripts/bootstrap-switch.min.js' ></script>
     <script type="text/javascript" src='/javascripts/jquery.poptrox.min.js' ></script>
     <script type="text/javascript">
-    var dongtai
+    var dongtai,
+        shijiancha
     $.fn.bootstrapSwitch.defaults.size = 'small';
     $.fn.bootstrapSwitch.defaults.onColor = 'success';
     jQuery.browser={};(function(){jQuery.browser.msie=false; 
@@ -484,8 +485,32 @@
           let randomStr = $('#randomStr option:selected').val()
           console.log('第一次获取的会议二维码是-->',randomStr)
 
+          //获取与服务器时间差
+              $.ajax({
+                  url: '/front/gettime', 
+                  async: false,
+                  dataType: 'json',
+                  type: 'POST',
+                  data: {
+                    timeStamp:timeStamp
+                  },
+                  success: function(result){
+                    console.log('返回时间差是--->',result.shijiancha)
+                    shijiancha = result.shijiancha
+                    return 
+                  },
+                  error: function(e){
+                    console.log("error dddd");
+                    console.log('e-->',e)
+                    console.error('e.message-->',e.message)
+                    return false
+                  }
+              });//ajax
+              let chuanditime = parseInt(timeStamp) + parseInt(shijiancha)
+              console.log('传到服务器的时间戳 --> ',chuanditime)
+
           //116.13.96.53:81,签到链接
-          let qiandaoUrl = 'http://qiandao.szu.edu.cn:81/front/qiandaodongtai/?r=' + randomStr + '&t=' + timeStamp
+          let qiandaoUrl = 'http://qiandao.szu.edu.cn:81/front/qiandaodongtai/?r=' + randomStr + '&t=' + chuanditime
           console.log('第一次的签到链接-->',qiandaoUrl)
 
           $("#code").empty()
@@ -512,7 +537,7 @@
           usePopupCaption: true,
         });
 
-          dongtai = setInterval(createQrcode,15000)
+          dongtai = setInterval('createQrcode(shijiancha)',15000)
 
         }else{
           'use strict';
@@ -559,41 +584,66 @@
               console.log('打开开关，开始生成动态二维码')
 
               let timeStamp = moment().format('X')
-              console.log('当前时间戳-->',timeStamp)
+              console.log('本地当前时间戳-->',timeStamp)
 
               //获取当前会议唯一码
               let randomStr = $('#randomStr option:selected').val()
               console.log('第一次获取的会议二维码是-->',randomStr)
 
+              //获取与服务器时间差
+              $.ajax({
+                  url: '/front/gettime', 
+                  async: false,
+                  dataType: 'json',
+                  type: 'POST',
+                  data: {
+                    timeStamp:timeStamp
+                  },
+                  success: function(result){
+                    console.log('返回时间差是--->',result.shijiancha)
+                    shijiancha = result.shijiancha
+                    return 
+                  },
+                  error: function(e){
+                    console.log("error dddd");
+                    console.log('e-->',e)
+                    console.error('e.message-->',e.message)
+                    return false
+                  }
+              });//ajax
+
+              let chuanditime = parseInt(timeStamp) + parseInt(shijiancha)
+              console.log('传到服务器的时间戳 --> ',chuanditime)
               //116.13.96.53:81,签到链接
-              let qiandaoUrl = 'http://qiandao.szu.edu.cn:81/front/qiandaodongtai/?r=' + randomStr + '&t=' + timeStamp
-              console.log('第一次的签到链接-->',qiandaoUrl)
+                    let qiandaoUrl = 'http://qiandao.szu.edu.cn:81/front/qiandaodongtai/?r=' + randomStr + '&t=' + chuanditime
+                    console.log('第一次的签到链接-->',qiandaoUrl)
 
-              $("#code").empty()
-              $("#image").empty()
-              $(".poptrox-overlay").remove()
-              $("#code").qrcode({ 
-                    background : '#F0F8FF',
-                    render: "canvas", //table方式 
-                    width: 300, //宽度 
-                    height:300, //高度 
-                    text: qiandaoUrl //任意内容 
-              });
+                    $("#code").empty()
+                    $("#image").empty()
+                    $(".poptrox-overlay").remove()
+                    $("#code").qrcode({ 
+                          background : '#F0F8FF',
+                          render: "canvas", //table方式 
+                          width: 300, //宽度 
+                          height:300, //高度 
+                          text: qiandaoUrl //任意内容 
+                    });
 
-              //转换成图片
-              var image = document.getElementById("image");  
-              var canvas = document.getElementById("code").getElementsByTagName("canvas")[0];  
-              let a_link =  document.getElementById("a_link")
-              console.log('a_link --> ',a_link)
-              image.src = canvas.toDataURL("image/png");  
-              image.title = '扫码签到'
-              a_link.href = canvas.toDataURL("image/png");  
+                    //转换成图片
+                    var image = document.getElementById("image");  
+                    var canvas = document.getElementById("code").getElementsByTagName("canvas")[0];  
+                    let a_link =  document.getElementById("a_link")
+                    console.log('a_link --> ',a_link)
+                    image.src = canvas.toDataURL("image/png");  
+                    image.title = '扫码签到'
+                    a_link.href = canvas.toDataURL("image/png");  
 
-              $('#gallery').poptrox({
-                usePopupCaption: true
-              });
+                    $('#gallery').poptrox({
+                      usePopupCaption: true
+                    });
 
-              dongtai = setInterval(createQrcode,15000)
+                    dongtai = setInterval('createQrcode(shijiancha)',15000)
+
             }else{
               'use strict';
               console.log('----- 手动关闭开关，清除定时器 -----')
@@ -631,7 +681,7 @@
       })
     
     //生成二维码函数，参数为链接地址
-    function createQrcode(){
+    function createQrcode(time){
       'use strict'
       //获取当前会议唯一码
       let randomStr = $('#randomStr option:selected').val()
@@ -639,8 +689,9 @@
       //时间戳
       let timeStamp = moment().format('X')
       console.log('当前时间戳-->',timeStamp)
+      let chuanditime = parseInt(timeStamp) + parseInt(time)
       //116.13.96.53:81,签到链接
-      let qiandaoUrl = 'http://qiandao.szu.edu.cn:81/front/qiandaodongtai/?r=' + randomStr + '&t=' + timeStamp
+      let qiandaoUrl = 'http://qiandao.szu.edu.cn:81/front/qiandaodongtai/?r=' + randomStr + '&t=' + chuanditime
       console.log('签到链接-->',qiandaoUrl)
       $("#code").empty()
       $("#image").empty()
