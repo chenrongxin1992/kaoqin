@@ -8,7 +8,7 @@
     <title>创建新会议</title>
 
     <!-- Bootstrap -->
-    <link rel="stylesheet" href="http://cdn.bootcss.com/bootstrap/3.3.2/css/bootstrap.min.css">
+   <link rel='stylesheet' href='/stylesheets/bootstrap.min.css' />
     <link rel='stylesheet' href='/stylesheets/style.css' />
     <link rel='stylesheet' href='/stylesheets/bootstrap-datetimepicker.min.css' />
     <link rel='stylesheet' href='/stylesheets/bootstrap-select.css' />
@@ -166,7 +166,7 @@
             <div class="col-lg-1 col-md-1 col-sm-1 col-xs-6 " style="text-align: center;font-weight: bold;line-height: 33px;">年级</div>
             <div class="col-lg-1 col-md-1 col-sm-1 col-xs-6" readonly="readonly">
               <select id="meeting_nianji" class="selectpicker" data-hide-disabled="true" data-live-search="false" disabled="disabled">
-                <option>2017</option><option>2016</option><option>2015</option><option>2014</option>
+                <option>非年级会议</option><option>2017</option><option>2016</option><option>2015</option><option>2014</option>
               </select>
             </div>
           </div>
@@ -212,8 +212,8 @@
   </div>
     <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
     <!-- Include all compiled plugins (below), or include individual files as needed -->
-    <script src="http://cdn.bootcss.com/jquery/1.11.2/jquery.min.js"></script>
-    <script src="http://cdn.bootcss.com/bootstrap/3.3.2/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src='/javascripts/jquery-1.10.2.min.js' ></script>
+    <script type="text/javascript" src='/javascripts/bootstrap.min.js' ></script>
     <script type="text/javascript" src='/javascripts/moment-with-locales.min.js' ></script>
     <script type="text/javascript" src='/javascripts/bootstrap-datetimepicker.min.js' ></script>
     <script type="text/javascript" src='/javascripts/bootstrap-select.js' ></script>
@@ -249,6 +249,24 @@
             }
           }
            $("#second_hour").selectpicker("refresh")
+       })//change
+
+        $('#meeting_type').change(function(){
+          'use strict'
+          let temp_type = $('#meeting_type option:selected').val()
+          console.log('meeting_nianji-->',temp_type)
+          $("#meeting_nianji option").remove()
+          if(temp_type == '非年级会议'){
+            $("#meeting_nianji").append("<option>非年级会议</option>");  
+          }else{
+            let date=new Date;
+            let year=date.getFullYear(); 
+            $("#meeting_nianji").append("<option>"+ parseInt(year) +"</option>");  
+            $("#meeting_nianji").append("<option>"+ (parseInt(year)-1) +"</option>");
+            $("#meeting_nianji").append("<option>"+ (parseInt(year)-2) +"</option>");
+            $("#meeting_nianji").append("<option>"+ (parseInt(year)-3) +"</option>");
+          }
+           $("#meeting_nianji").selectpicker("refresh")
        })//change
 
         //年级信息
