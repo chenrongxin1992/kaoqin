@@ -710,7 +710,8 @@ router.get('/stuinfo',function(req,res){
 router.get('/baoming',function(req,res){
 		if(!req.query.ticket){//没有用户信息，进行验证
 			console.log('here --> 1')
-			let ReturnURL = 'http://' + req.headers.host + req.originalUrl //http://116.13.96.53:81/front/baoming/
+			//let ReturnURL = 'http://' + req.headers.host + req.originalUrl //http://116.13.96.53:81/front/baoming/
+			let ReturnURL = 'http://qiandao.szu.edu.cn:81' + req.originalUrl
 			console.log('ReturnURL url-->',ReturnURL)
 			console.log('----- 没有ticket -----')
 			console.log('没有 session')
@@ -768,7 +769,8 @@ router.get('/baoming',function(req,res){
 			}
 			else{
 				console.log('here --> 2')
-				let ReturnURL = 'http://' + req.headers.host + req.originalUrl //http://116.13.96.53:81/front/baoming/
+				//let ReturnURL = 'http://' + req.headers.host + req.originalUrl //http://116.13.96.53:81/front/baoming/
+				let ReturnURL = 'http://qiandao.szu.edu.cn:81' + req.originalUrl
 				console.log('ReturnURL url-->',ReturnURL)
 				console.log('you ticket, meiyou session')
 				let ticket = req.query.ticket
@@ -862,7 +864,10 @@ router.get('/qiandao',function(req,res){
 	if(!req.query.ticket){//没有用户信息，进行验证
 		console.log('here --> 1')
 		console.log('----- 没有ticket -----')	
-		let ReturnURL = 'http://' + req.headers.host + req.originalUrl //http://116.13.96.53:81/front/baoming/
+		console.log('host ---> ',req.headers.host)
+		console.log('originalUrl --- >',req.originalUrl)
+		// let ReturnURL = 'http://' + req.headers.host + req.originalUrl //http://116.13.96.53:81/front/baoming/
+		let ReturnURL = 'http://qiandao.szu.edu.cn:81' + req.originalUrl
 		console.log('ReturnURL url-->',ReturnURL)
 		if(!req.session.student){
 			console.log('没有session信息')
@@ -922,7 +927,8 @@ router.get('/qiandao',function(req,res){
 			console.log('here -- > 2')
 			let ticket = req.query.ticket
 			console.log('check ticket-->',ticket)
-			let ReturnURL = 'http://' + req.headers.host + req.originalUrl //http://116.13.96.53:81/front/baoming/
+			//let ReturnURL = 'http://' + req.headers.host + req.originalUrl //http://116.13.96.53:81/front/baoming/
+			let ReturnURL = 'http://qiandao.szu.edu.cn:81' + req.originalUrl
 			console.log('ReturnURL url-->',ReturnURL)
 			let url = CASserver + 'serviceValidate?ticket=' + ticket + '&service=' + ReturnURL
 			console.log('check url -->',url)
@@ -1031,7 +1037,8 @@ router.get('/qiandaodongtai',function(req,res){
 				console.log('here --> 1')
 				console.log('----- 没有ticket -----')	
 				if(!req.session.student){
-					let ReturnURL = 'http://' + req.headers.host + req.originalUrl //http://116.13.96.53:81/front/baoming/
+					//let ReturnURL = 'http://' + req.headers.host + req.originalUrl //http://116.13.96.53:81/front/baoming/
+					let ReturnURL = 'http://qiandao.szu.edu.cn:81' + req.originalUrl
 					console.log('ReturnURL url-->',ReturnURL)
 					console.log('----- 没有session信息 -----')
 					let url = CASserver + 'login?service=' + ReturnURL
@@ -1095,7 +1102,8 @@ router.get('/qiandaodongtai',function(req,res){
 				console.log('here -- > 2')
 				let ticket = req.query.ticket
 				console.log('check ticket-->',ticket)
-				let ReturnURL = 'http://' + req.headers.host + req.originalUrl 
+				//let ReturnURL = 'http://' + req.headers.host + req.originalUrl 
+				let ReturnURL = 'http://qiandao.szu.edu.cn:81' + req.originalUrl
 				console.log('check here 2 ReturnURL --> ',ReturnURL)
 				let url = CASserver + 'serviceValidate?ticket=' + ticket + '&service=' + ReturnURL
 				console.log('check url -->',url)
