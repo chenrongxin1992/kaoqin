@@ -12,9 +12,9 @@ var bmqdSchema = new Schema({
     meeting_des :{type:String},                                    //会议内容
     meeting_date : {type : String },                                   //会议日期 5月10日
     meeting_date_timeStamp : {type : String,default:null},
-    insert_time : {type : String, default : moment().format('YYYY-MM-DD HH:mm:ss') },     //插入时间 
+    insert_time : {type : String, default : null},     //插入时间 
     insert_timeStamp : {type : String,default:moment().format('X')},
-    update_time : {type : String, default : moment().format('YYYY-MM-DD HH:mm:ss') },     //更新时间 
+    update_time : {type : String, default :null },     //更新时间 
     update_timeStamp : {type : String,default:moment().format('X')},
     randomStr : {type:String},
     baoming : {type:String,default:'0'},

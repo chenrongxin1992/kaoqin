@@ -1113,7 +1113,8 @@ exports.qiandaodongtai = function(args,callback){
 						danwei:info.user.danwei,
 						xiaoyuankahao:args.people_no,
 						is_dynamic : '1',
-						meeting_time:info.meeting.meeting_time
+						meeting_time:info.meeting.meeting_time,
+						insert_time:moment().format('YYYY-MM-DD hh:mm:ss')
 					})
 					qiandaoxinxi.save(function(e,d){
 						if(e){
@@ -2098,7 +2099,7 @@ exports.studentStatic = function(xiaoyuankahao,callback){
 				}else{
 					console.log('9-12月份')
 					//开始时间戳2017-09-01到当前时间戳
-					let timeStr = year + '-' + temp_month + '-' + '01',
+					let timeStr = year + '-' + '09' + '-' + '01',
 						beginTImeStamp = moment(timeStr,'YYYY-MM-DD').format('X'),
 						nowTImeStamp = moment().format('X') 
 						console.log('check begindate',timeStr)
@@ -2230,7 +2231,7 @@ exports.studentStatic = function(xiaoyuankahao,callback){
 				}else{
 					console.log('9-12月份')
 					//开始时间戳2017-09-01到当前时间戳
-					let timeStr = year + '-' + temp_month + '-' + '01',
+					let timeStr = year + '-' + '09' + '-' + '01',
 						beginTImeStamp = moment(timeStr,'YYYY-MM-DD').format('X'),
 						nowTImeStamp = moment().format('X') 
 						console.log('check begindate',timeStr)
