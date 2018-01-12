@@ -28,7 +28,9 @@
         margin:5px 0;
         height: 50px;
         padding: 5px 0 0 0;
-
+      }
+      .form-horizontal{
+        padding:0 15px;
       }
       @media (min-width: 1170px) {
       hr{
@@ -80,6 +82,12 @@
         }
       }
       @media (min-width: 768px) {
+        .hr {
+          margin-top: 0px; 
+          margin-bottom: 0px; 
+          border: 0; 
+          border-top: 1px solid #eee; 
+        }
         .meeting_date{
           text-align: right;
         }
@@ -187,7 +195,7 @@
       </div>
 
       <div class="row">
-        <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 footer">
+        <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 footer" style="text-align: center;">
           <span>2017 © 计算机与软件学院</span>
         </div>
       </div>
@@ -216,6 +224,7 @@
     <!-- Include all compiled plugins (below), or include individual files as needed bootstrap.min-->
     <script type="text/javascript" src='/javascripts/jquery-1.10.2.min.js' ></script>
     <script type="text/javascript" src='/javascripts/bootstrap.min.js' ></script>
+    <script type="text/javascript" src='/javascripts/moment-with-locales.min.js' ></script>
    <!--  <script src="http://cdn.bootcss.com/bootstrap/3.3.2/js/bootstrap.min.js"></script> -->
     <script type="text/javascript">
     function br2nl(txt){
@@ -223,8 +232,8 @@
         var s=txt.replace(re,"\n");
         return s;                                  
     }
-    $.fn.bootstrapSwitch.defaults.size = 'small';
-    $.fn.bootstrapSwitch.defaults.onColor = 'success';
+    // $.fn.bootstrapSwitch.defaults.size = 'small';
+    // $.fn.bootstrapSwitch.defaults.onColor = 'success';
     jQuery.browser={};(function(){jQuery.browser.msie=false; 
     jQuery.browser.version=0;if(navigator.userAgent.match(/MSIE ([0-9]+)./)){ jQuery.browser.msie=true;jQuery.browser.version=RegExp.$1;}})();
        $(function() {

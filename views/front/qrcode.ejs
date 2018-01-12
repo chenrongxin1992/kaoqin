@@ -14,6 +14,7 @@
     <link rel='stylesheet' href='/stylesheets/bootstrap-select.css' />
     <link rel='stylesheet' href='/stylesheets/bootstrapValidator.min.css' />
     <link rel='stylesheet' href='/stylesheets/bootstrap-switch.min.css' />
+    <link rel='stylesheet' href='/stylesheets/common.css' />
     <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
     <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
     <!--[if lt IE 9]>
@@ -25,6 +26,36 @@
         padding: 0;
         font-family: '微软雅黑';;
       }
+.zxx_list_title{
+  background:#eeeeee; 
+  border:1px solid #cccccc; 
+  padding:1em;
+}
+.zxx_list_content{
+  padding:1em;.
+}
+#tinybox{
+
+  position:absolute; 
+  display:none; 
+  /*padding:10px; */
+  background:#ffffff url(../image/preload.gif) no-repeat 50% 50%; 
+  /*border:10px solid #e3e3e3; */
+  z-index:2000;
+}
+#tinymask{
+  position:absolute; 
+  display:none; 
+  top:0; left:0; height:100%; 
+  width:100%; 
+  background:#000000; 
+  z-index:1500;
+}
+#tinycontent{
+  padding: 10px 10px;
+  background-color: #E9967A;
+  font-size:1.1em;
+}
       .head{
         color: #00B7FF;
         font-size:26px;
@@ -251,7 +282,7 @@
         <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12" style="text-align: center;">
           <div id="wrapper">
             <div id="gallery">
-              <a href="" id="a_link"><img id="image" src="" title="" > </a>
+              <!-- <a href="" id="a_link"> --><img id="image" src="" title="" ><!--  </a> -->
             </div>
           </div>
         </div>
@@ -306,6 +337,7 @@
     <script type="text/javascript" src='/javascripts/jquery.qrcode.min.js' ></script>
     <script type="text/javascript" src='/javascripts/bootstrap-switch.min.js' ></script>
     <script type="text/javascript" src='/javascripts/jquery.poptrox.min.js' ></script>
+    <script type="text/javascript" src='/javascripts/tinybox.js' ></script>
     <script type="text/javascript">
     var dongtai,
         shijiancha
@@ -353,10 +385,6 @@
           $("#meeting_place").empty()
           $("#code").empty()
           $('#image').empty()
-          //$('#a_link').empty()
-          ///$('#gallery').empty()
-          //$('#wrapper').empty()
-          $(".poptrox-overlay").remove()
 
           for(let i=0; i<temp_result.length; i++){
             'use strict';
@@ -387,7 +415,6 @@
               $("#meeting_nianji").append("<p>"+'暂无信息' + "</p>");
               $('#code').empty()
               $('#image').empty()
-              $(".poptrox-overlay").remove()
           }
           $("#randomStr").selectpicker("refresh")
        })//change
@@ -413,7 +440,6 @@
         $('#create-baoming').attr("disabled","disabled")
         $("#code").empty()
         $("#image").empty()
-        $(".poptrox-overlay").remove()
 
         console.log('----- 生成报名二维码 -----')
         let randomStr = $('#randomStr option:selected').val()
@@ -430,19 +456,17 @@
         });
 
         //转换成图片
-        let image = document.getElementById("image");  
-        let canvas = document.getElementById("code").getElementsByTagName("canvas")[0];  
-        let a_link =  document.getElementById("a_link")
-        console.log('a_link --> ',a_link)
+        let image = document.getElementById("image"),
+            canvas = document.getElementById("code").getElementsByTagName("canvas")[0];  
+
         image.src = canvas.toDataURL("image/png");  
         image.title = '扫码报名参加 '+ temp_meetingName +' 会议'
-        a_link.href = canvas.toDataURL("image/png");  
 
-        $('#gallery').poptrox({
-          usePopupCaption: true,
-          overlayColor: 'black'
-        });
-        //$('input[name="my-checkbox"]').bootstrapSwitch('toggleDisabled');  // true || false
+        let content2 = "<img width='400' height='400' src='"+ image.src +"' />";
+        $('#image').on('click',function(){
+          console.log('报名--》')
+          TINY.box.show(content2,0,0,0,1)
+        })
         return false
       })
 
@@ -450,10 +474,6 @@
       $('#create-qiandao').on("click",function(){
         'use strict';
         console.log('----- 生成签到二维码 -----')
-
-        //$('#create-qiandao').addClass('disabled')
-        //.attr("width","180");
-        //$('#create-qiandao').prop('disabled', true)
         
         let temp_meetingName = $('#meeting_name option:selected').val()
         if(temp_meetingName == 'select'){
@@ -520,26 +540,24 @@
           $("#code").qrcode({ 
                 background : '#F0F8FF',
                 render: "canvas", //table方式 
-                width: 320, //宽度 
-                height:320, //高度 
+                width: 360, //宽度 
+                height:360, //高度 
                 text: qiandaoUrl //任意内容 
           });
 
           //转换成图片
-        var image = document.getElementById("image");  
-        var canvas = document.getElementById("code").getElementsByTagName("canvas")[0];  
-        let a_link =  document.getElementById("a_link")
+        let image = document.getElementById("image"),
+            canvas = document.getElementById("code").getElementsByTagName("canvas")[0];  
         console.log('a_link --> ',a_link)
         image.src = canvas.toDataURL("image/png");  
-        image.title = '扫码签到'
-        a_link.href = canvas.toDataURL("image/png");  
+        image.title = '扫码签到'  
 
-        $('#gallery').poptrox({
-          usePopupCaption: true,
-        });
-
-          dongtai = setInterval('createQrcode(shijiancha)',15000)
-
+        let content2 = "<img width='360' height='360' src='"+ image.src +"' />";
+        $('#image').on('click',function(){
+          console.log('111')
+            TINY.box.show(content2,0,0,0,1)
+        })
+        dongtai = setInterval('createQrcode(shijiancha)',15000)
         }else{
           'use strict';
           console.log('开关关闭，静态二维码')
@@ -550,26 +568,26 @@
           console.log('检查签到链接-->',qiandaoUrl)
           $("#code").empty()
           $("#iamge").empty()
-          $(".poptrox-overlay").remove()
           $("#code").qrcode({ 
                 background : '#F0F8FF',
                 render: "canvas", //table方式 
-                width: 320, //宽度 
-                height:320, //高度 
+                width: 360, //宽度 
+                height:360, //高度 
                 text: qiandaoUrl //任意内容 
           });
           //转换成图片
-          var image = document.getElementById("image");  
-          var canvas = document.getElementById("code").getElementsByTagName("canvas")[0];  
-          let a_link =  document.getElementById("a_link")
-          console.log('a_link --> ',a_link)
+          let image = document.getElementById("image"),
+              canvas = document.getElementById("code").getElementsByTagName("canvas")[0];  
+
           image.src = canvas.toDataURL("image/png");  
           image.title = '扫码签到'
-          a_link.href = canvas.toDataURL("image/png");  
 
-          $('#gallery').poptrox({
-            usePopupCaption: true
-          });
+          let content2 = "<img width='360' height='360' src='"+ image.src +"' />";
+          console.log(content2)
+          $('#image').on('click',function(){
+            console.log('222')
+            TINY.box.show(content2,0,0,0,1)
+          })
         }
         return false
       })
@@ -616,35 +634,33 @@
               let chuanditime = parseInt(timeStamp) + parseInt(shijiancha)
               console.log('传到服务器的时间戳 --> ',chuanditime)
               //116.13.96.53:81,签到链接
-                    let qiandaoUrl = 'http://qiandao.szu.edu.cn:81/front/qiandaodongtai/?r=' + randomStr + '&t=' + chuanditime
-                    console.log('第一次的签到链接-->',qiandaoUrl)
+              let qiandaoUrl = 'http://qiandao.szu.edu.cn:81/front/qiandaodongtai/?r=' + randomStr + '&t=' + chuanditime
+              console.log('第一次的签到链接-->',qiandaoUrl)
 
-                    $("#code").empty()
-                    $("#image").empty()
-                    $(".poptrox-overlay").remove()
-                    $("#code").qrcode({ 
-                          background : '#F0F8FF',
-                          render: "canvas", //table方式 
-                          width: 320, //宽度 
-                          height:320, //高度 
-                          text: qiandaoUrl //任意内容 
-                    });
+              $("#code").empty()
+              $("#image").empty()
+              $("#code").qrcode({ 
+                  background : '#F0F8FF',
+                  render: "canvas", //table方式 
+                  width: 360, //宽度 
+                  height:360, //高度 
+                  text: qiandaoUrl //任意内容 
+              });
 
-                    //转换成图片
-                    var image = document.getElementById("image");  
-                    var canvas = document.getElementById("code").getElementsByTagName("canvas")[0];  
-                    let a_link =  document.getElementById("a_link")
-                    console.log('a_link --> ',a_link)
-                    image.src = canvas.toDataURL("image/png");  
-                    image.title = '扫码签到'
-                    a_link.href = canvas.toDataURL("image/png");  
+              //转换成图片
+              let image = document.getElementById("image"),
+                  canvas = document.getElementById("code").getElementsByTagName("canvas")[0];  
 
-                    $('#gallery').poptrox({
-                      usePopupCaption: true
-                    });
+              image.src = canvas.toDataURL("image/png");  
+              image.title = '扫码签到'
+              // a_link.href = canvas.toDataURL("image/png");  
+              let content2 = "<img width='360' height='360' src='"+ image.src +"' />";
+              $('#image').on('click',function(){
+                console.log('333')
+                TINY.box.show(content2,0,0,0,1)
+              })
 
-                    dongtai = setInterval('createQrcode(shijiancha)',15000)
-
+              dongtai = setInterval('createQrcode(shijiancha)',15000)
             }else{
               'use strict';
               console.log('----- 手动关闭开关，清除定时器 -----')
@@ -660,29 +676,28 @@
               $("#code").qrcode({ 
                     background : '#F0F8FF',
                     render: "canvas", //table方式 
-                    width: 320, //宽度 
-                    height:320, //高度 
+                    width: 360, //宽度 
+                    height:360, //高度 
                     text: qiandaoUrl //任意内容 
               });
               //转换成图片
-              var image = document.getElementById("image");  
-              var canvas = document.getElementById("code").getElementsByTagName("canvas")[0];  
-              let a_link =  document.getElementById("a_link")
-              console.log('a_link --> ',a_link)
+              let image = document.getElementById("image"),
+                  canvas = document.getElementById("code").getElementsByTagName("canvas")[0];  
               image.src = canvas.toDataURL("image/png");  
               image.title = '扫码签到'
-              a_link.href = canvas.toDataURL("image/png");  
 
-              $('#gallery').poptrox({
-                usePopupCaption: true
-              });
+              let content2 = "<img width='360' height='360' src='"+ image.src +"' />";
+              $('#image').on('click',function(){
+                console.log('555')
+                TINY.box.show(content2,0,0,0,1)
+              })
             }
           }
         })
       })
     
     //生成二维码函数，参数为链接地址
-    function createQrcode(time){
+    function createQrcode_bk(time){
       'use strict'
       //获取当前会议唯一码
       let randomStr = $('#randomStr option:selected').val()
@@ -700,25 +715,54 @@
       $("#code").qrcode({ 
             background : '#F0F8FF',
             render: "canvas", //table方式 
-            width: 320, //宽度 
-            height:320, //高度 
+            width: 360, //宽度 
+            height:360, //高度 
             text: qiandaoUrl //任意内容 
       });
       //转换成图片
+      let image = document.getElementById("image"),
+          canvas = document.getElementById("code").getElementsByTagName("canvas")[0];  
+      console.log('a_link --> ',a_link)
+      image.src = canvas.toDataURL("image/png");  
+      image.title = '扫码签到'
+        
+      $('#gallery').poptrox({
+        usePopupCaption: true
+      });
+    }
+    function createQrcode(time){
+      'use strict'
+      //获取当前会议唯一码
+      let randomStr = $('#randomStr option:selected').val()
+      console.log('check randomStr after click-->',randomStr)
+      //时间戳
+      let timeStamp = moment().format('X')
+      console.log('当前时间戳-->',timeStamp)
+      let chuanditime = parseInt(timeStamp) + parseInt(time)
+      //116.13.96.53:81,签到链接
+      let qiandaoUrl = 'http://qiandao.szu.edu.cn:81/front/qiandaodongtai/?r=' + randomStr + '&t=' + chuanditime
+      console.log('签到链接-->',qiandaoUrl)
+      $("#code").empty()
+      $("#image").empty()
+      $("#code").qrcode({ 
+            background : '#F0F8FF',
+            render: "canvas", //table方式 
+            width: 360, //宽度 
+            height:360, //高度 
+            text: qiandaoUrl //任意内容 
+      });
+      console.log('code->',$('#code'))
+      //转换成图片
         var image = document.getElementById("image");  
         var canvas = document.getElementById("code").getElementsByTagName("canvas")[0];  
-        let a_link =  document.getElementById("a_link")
-        console.log('a_link --> ',a_link)
+
+        console.log('canvas->',canvas)
         image.src = canvas.toDataURL("image/png");  
         image.title = '扫码签到'
-        a_link.href = canvas.toDataURL("image/png");  
-        
-        $('#gallery').poptrox({
-          usePopupCaption: true
-        });
-        $("#a_link").trigger("click");//模拟执行id=a的事件 
-    }
 
+        console.log('tihuan')
+        $('#tinycontent img').attr('src',image.src)
+    }
     </script>
   </body>
 </html>
